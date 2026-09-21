@@ -66,6 +66,7 @@ env/
 *.log
 
 # Private/generated research artifacts
+/ROBOT_RESEARCH_PIPELINE.md
 experiments/
 data/collected_datasets/
 data/test_results/

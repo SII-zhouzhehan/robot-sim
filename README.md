@@ -15,8 +15,9 @@ manifold. It is not presented as a universal topology descriptor.
 
 > **Source-only public release**
 >
-> The robot URDF, CAD meshes, raw datasets, trained weights, and experiment
-> outputs are confidential and intentionally excluded from Git. A fresh clone
+> The robot URDF, CAD meshes, raw datasets, trained weights, and raw experiment
+> outputs are confidential and intentionally excluded from Git. Reviewed,
+> geometry-free benchmark summaries may be published as Markdown. A fresh clone
 > is useful for reading and developing the control code, but it cannot reproduce
 > the complete PyBullet experiments without the private local assets.
 
@@ -131,6 +132,33 @@ MPC, swerve kinematics, morphology commands, and PyBullet execution.
 
 ## Current Evidence
 
+### v0.1 Four-Obstacle Simulation Milestone (2026-09-21)
+
+The revised headless policy achieved **79/80 successful trials (98.75%)** in
+a fixed batch with new seeds and small initial-state/friction perturbations:
+
+| Isolated obstacle | Successful trials | Sample success rate |
+| --- | ---: | ---: |
+| Narrow gate | 20/20 | 100% |
+| Low platform | 20/20 | 100% |
+| Bridge | 20/20 | 100% |
+| Double cylinders | 19/20 | 95% |
+
+This meets the declared **at least 95% per obstacle** sample-rate target for
+this protocol. It does not establish a population success probability of 95%,
+performance on the full compound course, or hardware reliability. The cylinder
+timeout is retained: the robot cleared the obstacle but remained 0.247 m from
+the goal after 40 s, outside the 0.20 m arrival tolerance.
+
+Development exposed platform failures when turning and morphing overlapped.
+Completing the sideways turn in the ring configuration before approach and
+morphing resolved the platform failures in the new batch, without changing
+obstacle dimensions, required Phi=2, or acceptance thresholds. The earlier
+60/80 batch, all development checks, and the final 79/80 batch remain separately
+reported in [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md).
+
+### Earlier Module-Level Evidence
+
 These numbers are preliminary development results, not final paper claims:
 
 - the retained MorphGNN training record reports a validation loss of
@@ -141,8 +169,55 @@ These numbers are preliminary development results, not final paper claims:
 - saved PPO policies have not yet demonstrated reliable benchmark completion;
 - no physical-robot experiment has been completed.
 
-Because datasets, checkpoints, and result artifacts are private, these values
-are project status notes rather than a public reproducibility package.
+The headless four-obstacle evaluation is documented in
+[BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md). It reports all trials in each
+fixed batch, per-obstacle success rates, failure reasons, and uncertainty.
+Publishing source and a summary provides an auditable project record; it does
+not make private-geometry experiments independently reproducible from a clone.
+
+### Headless Obstacle Evaluation
+
+The runner tests the four obstacle types from Scene C **individually**, using
+the analytical decoder, scripted morphology selection, MPC, and swerve
+execution. It pauses translation during morphology transitions and retains
+the existing geometric heading estimate near Phi=3. This is an explicit
+headless evaluation policy, not a claim that the historical GUI or learned
+GNN/PPO policy achieved the same results.
+
+```bash
+# Four nominal development checks
+python scripts/eval_four_obstacles.py --trials 1 --workers 4 --nominal --output experiments/four_smoke
+# A fixed batch with the revised platform preparation (80 total)
+python scripts/eval_four_obstacles.py --trials 20 --workers 4 --seed 2026093100 --align-platform --output experiments/four_batch
+```
+
+Each trial starts with independent uniform x/y offsets of up to 0.03 m,
+heading offsets up to 3 degrees, and ground/wheel friction in [0.9, 1.1].
+Obstacle dimensions remain those of the existing scene. These are small local
+perturbations, not evidence of general terrain robustness or hardware success.
+
+`--align-platform` completes the sideways turn while the robot is still in its
+ring configuration, before approaching and morphing for the platform. Omitting
+it reproduces the original evaluation policy. `--platform-phi` and
+`--platform-heading-deg` are explicit development overrides recorded in the
+protocol; their defaults retain Phi=2 and a 90-degree platform approach.
+
+Success requires the full robot AABB to clear the obstacle, the centroid to
+remain in the designated crossing corridor, and the final goal distance to be
+below 0.20 m. The commanded morphology must be reached, all seven actual joint
+errors must be at most 0.05 rad, and at least two wheels must contact the ground
+for ten consecutive control steps. Significant robot-obstacle contact
+(force >1 N or penetration >2 mm) at any physics tick is a failure; timeout is
+40 simulated seconds. This protocol treats the platform as a clearance/straddle
+task, not an intentional wheel-climbing task. It does not certify mechanical
+stability, general self-collision safety, or physical-robot reliability.
+
+The runner uses PyBullet DIRECT without cameras or sleeps. It does not use the
+GUI demonstration's per-tick joint-state reset patch. The run directory must
+be new: protocol, seeds, source hashes, all outcomes, and private traces are
+retained instead of overwriting or retaining only successful trials. There is
+no stop-when-95%-is-reached rule. Twenty successes out of twenty is a sample
+rate, not a 95% lower confidence bound on the population success probability.
 
 ## Repository Layout
 
@@ -152,6 +227,7 @@ robot-sim/
 |   |-- brains/          # upper-level interfaces and scripted policy
 |   |-- controllers/     # MPC, PID, and swerve kinematics
 |   |-- envs/            # PyBullet robot and benchmark environments
+|   |-- evaluation/      # explicit obstacle traversal acceptance rules
 |   |-- models/          # MorphGNN models and graph datasets
 |   `-- utils/           # morphology graph and coordinate utilities
 |-- scripts/             # data, training, evaluation, and visualization tools
@@ -159,6 +235,7 @@ robot-sim/
 |-- data/README.md       # private-data policy and expected local layout
 |-- PAPER_DIRECTION.md   # paper thesis, hypotheses, and required baselines
 |-- PAPER_READING_LIST.md # focused literature-reading plan
+|-- BENCHMARK_RESULTS.md # reviewed aggregate results; no private geometry
 |-- total_plan.md        # implementation and experiment plan
 `-- requirements.txt
 ```
@@ -260,7 +337,8 @@ python -m unittest discover -s tests -v
 ```
 
 They currently verify the seven-node morphology graph contract, graph-to-robot
-joint ordering, full/lite model output interfaces, and notebook hygiene. The
+joint ordering, full/lite model output interfaces, obstacle traversal criteria,
+and notebook hygiene. The
 notebook check prevents committed execution counts and embedded outputs.
 
 ## Research Roadmap
