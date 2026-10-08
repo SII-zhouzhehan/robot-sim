@@ -2,7 +2,7 @@
 Generate Figure 6-3: Scene A configuration switching timeline.
 
 The timeline is produced from ScriptedBrain's FSM thresholds and the same Phi
-update rate used in evaluate_brain.py. It is a reproducible diagram for the
+update rate used in evaluate_mujoco.py. It is a reproducible diagram for the
 single narrow-gate scenario rather than a hand-drawn sketch.
 """
 

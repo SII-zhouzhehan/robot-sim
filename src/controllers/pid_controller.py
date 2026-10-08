@@ -7,7 +7,7 @@ PID 速度闭环控制器
 架构位置:
   期望 (vx, vy, ω)
        ↓
-   [PID Controller] ← 实际 (vx, vy, ω) [PyBullet getBaseVelocity]
+   [PID Controller] ← 实际 (vx, vy, ω) [MuJoCo body velocity]
        ↓
    补偿后 (vx', vy', ω')
        ↓
@@ -164,7 +164,7 @@ class VelocityPIDController:
                                   ki=g['omega']['ki'] * gain_scale)
     
     def _ema_filter(self, actual_vx, actual_vy, actual_omega):
-        """EMA 低通滤波, 抑制 PyBullet 速度读数高频噪声"""
+        """EMA 低通滤波，抑制物理速度读数高频噪声"""
         a = self.ema_alpha
         self._filtered_vx = a * actual_vx + (1 - a) * self._filtered_vx
         self._filtered_vy = a * actual_vy + (1 - a) * self._filtered_vy

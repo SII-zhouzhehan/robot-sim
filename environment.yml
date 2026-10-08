@@ -1,0 +1,11 @@
+name: robot-sim
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+# After activation, run python scripts/setup_environment.py to install packages.
+# The installer installs the shared MuJoCo/control dependencies.
+variables:
+  PYTHONUTF8: "1"

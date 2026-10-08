@@ -1,6 +1,6 @@
 # Phi-Conditioned Hierarchical Control for a Morphing Mobile Robot
 
-This repository contains the research code for a PyBullet-based control system
+This repository contains the research code for a MuJoCo-based control system
 for a continuously reconfigurable omnidirectional mobile robot. The central
 idea is to use a shared, quantitative morphology context, called `Phi`, to
 connect three control layers:
@@ -19,7 +19,7 @@ manifold. It is not presented as a universal topology descriptor.
 > outputs are confidential and intentionally excluded from Git. Reviewed,
 > geometry-free benchmark summaries may be published as Markdown. A fresh clone
 > is useful for reading and developing the control code, but it cannot reproduce
-> the complete PyBullet experiments without the private local assets.
+> the complete MuJoCo experiments without the private local assets.
 
 ## Research Question
 
@@ -128,96 +128,32 @@ included as comparison methods.
 | C | a compound course with several obstacle types |
 
 The benchmark stack combines task generation, the scripted or learned brain,
-MPC, swerve kinematics, morphology commands, and PyBullet execution.
+MPC, swerve kinematics, morphology commands, and MuJoCo execution.
 
 ## Current Evidence
 
-### v0.1 Four-Obstacle Simulation Milestone (2026-09-21)
+The MuJoCo backend has been verified locally with the private robot assets:
+26 automated tests plus one subtest pass, the model loads with 19 actuators,
+headless A/B/C evaluation runs, PPO environment stepping, and the native macOS
+viewer all complete successfully. These checks validate the implementation and
+interfaces; they are not a claim of benchmark success across randomized trials.
 
-The revised headless policy achieved **79/80 successful trials (98.75%)** in
-a fixed batch with new seeds and small initial-state/friction perturbations:
+### MuJoCo Obstacle Evaluation
 
-| Isolated obstacle | Successful trials | Sample success rate |
-| --- | ---: | ---: |
-| Narrow gate | 20/20 | 100% |
-| Low platform | 20/20 | 100% |
-| Bridge | 20/20 | 100% |
-| Double cylinders | 19/20 | 95% |
-
-This meets the declared **at least 95% per obstacle** sample-rate target for
-this protocol. It does not establish a population success probability of 95%,
-performance on the full compound course, or hardware reliability. The cylinder
-timeout is retained: the robot cleared the obstacle but remained 0.247 m from
-the goal after 40 s, outside the 0.20 m arrival tolerance.
-
-Development exposed platform failures when turning and morphing overlapped.
-Completing the sideways turn in the ring configuration before approach and
-morphing resolved the platform failures in the new batch, without changing
-obstacle dimensions, required Phi=2, or acceptance thresholds. The earlier
-60/80 batch, all development checks, and the final 79/80 batch remain separately
-reported in [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md).
-
-### Earlier Module-Level Evidence
-
-These numbers are preliminary development results, not final paper claims:
-
-- the retained MorphGNN training record reports a validation loss of
-  approximately `0.00216` and a joint-angle MAE of approximately `0.026 rad`;
-- three archived Scene B simulation runs reached the task criterion, with mean
-  path errors in the approximate range of `0.019-0.030 m`;
-- Phi-aware PID gain scheduling has shown only small and inconsistent gains;
-- saved PPO policies have not yet demonstrated reliable benchmark completion;
-- no physical-robot experiment has been completed.
-
-The headless four-obstacle evaluation is documented in
-[BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md). It reports all trials in each
-fixed batch, per-obstacle success rates, failure reasons, and uncertainty.
-Publishing source and a summary provides an auditable project record; it does
-not make private-geometry experiments independently reproducible from a clone.
-
-### Headless Obstacle Evaluation
-
-The runner tests the four obstacle types from Scene C **individually**, using
-the analytical decoder, scripted morphology selection, MPC, and swerve
-execution. It pauses translation during morphology transitions and retains
-the existing geometric heading estimate near Phi=3. This is an explicit
-headless evaluation policy, not a claim that the historical GUI or learned
-GNN/PPO policy achieved the same results.
+The MuJoCo evaluator runs the scripted brain, MPC, morphology controller, and
+contact checks in scenes A, B, and C. Reports are written to the ignored
+`experiments/mujoco_evaluations/` directory.
 
 ```bash
-# Four nominal development checks
-python scripts/eval_four_obstacles.py --trials 1 --workers 4 --nominal --output experiments/four_smoke
-# A fixed batch with the revised platform preparation (80 total)
-python scripts/eval_four_obstacles.py --trials 20 --workers 4 --seed 2026093100 --align-platform --output experiments/four_batch
+python scripts/evaluate_mujoco.py --scene A --seconds 60 --source formula
+python scripts/evaluate_mujoco.py --scene B --seconds 60 --source formula
+python scripts/evaluate_mujoco.py --scene C --seconds 100 --source formula
 ```
 
-Each trial starts with independent uniform x/y offsets of up to 0.03 m,
-heading offsets up to 3 degrees, and ground/wheel friction in [0.9, 1.1].
-Obstacle dimensions remain those of the existing scene. These are small local
-perturbations, not evidence of general terrain robustness or hardware success.
-
-`--align-platform` completes the sideways turn while the robot is still in its
-ring configuration, before approaching and morphing for the platform. Omitting
-it reproduces the original evaluation policy. `--platform-phi` and
-`--platform-heading-deg` are explicit development overrides recorded in the
-protocol; their defaults retain Phi=2 and a 90-degree platform approach.
-
-Success requires the full robot AABB to clear the obstacle, the centroid to
-remain in the designated crossing corridor, and the final goal distance to be
-below 0.20 m. The commanded morphology must be reached, all seven actual joint
-errors must be at most 0.05 rad, and at least two wheels must contact the ground
-for ten consecutive control steps. Significant robot-obstacle contact
-(force >1 N or penetration >2 mm) at any physics tick is a failure; timeout is
-40 simulated seconds. This protocol treats the platform as a clearance/straddle
-task, not an intentional wheel-climbing task. It does not certify mechanical
-stability, general self-collision safety, or physical-robot reliability.
-
-The runner uses PyBullet DIRECT without cameras or sleeps. It does not use the
-GUI demonstration's per-tick joint-state reset patch. The run directory must
-be new: protocol, seeds, source hashes, all outcomes, and private traces are
-retained instead of overwriting or retaining only successful trials. There is
-no stop-when-95%-is-reached rule. Twenty successes out of twenty is a sample
-rate, not a 95% lower confidence bound on the population success probability.
+Use `--source gnn --gnn-checkpoint <path>` to evaluate a trained morphology
+decoder. Use `mjpython ... --gui` on macOS for a native viewer. The report
+records goal completion, obstacle contacts, support contacts, morphology error,
+and traversal status; a short smoke run is not a benchmark success claim.
 
 ## Repository Layout
 
@@ -226,7 +162,7 @@ robot-sim/
 |-- src/
 |   |-- brains/          # upper-level interfaces and scripted policy
 |   |-- controllers/     # MPC, PID, and swerve kinematics
-|   |-- envs/            # PyBullet robot and benchmark environments
+|   |-- envs/            # MuJoCo robot and benchmark environments
 |   |-- evaluation/      # explicit obstacle traversal acceptance rules
 |   |-- models/          # MorphGNN models and graph datasets
 |   `-- utils/           # morphology graph and coordinate utilities
@@ -235,8 +171,6 @@ robot-sim/
 |-- data/README.md       # private-data policy and expected local layout
 |-- PAPER_DIRECTION.md   # paper thesis, hypotheses, and required baselines
 |-- PAPER_READING_LIST.md # focused literature-reading plan
-|-- BENCHMARK_RESULTS.md # reviewed aggregate results; no private geometry
-|-- total_plan.md        # implementation and experiment plan
 `-- requirements.txt
 ```
 
@@ -255,20 +189,85 @@ ignored directories. Do not force-add these files to Git.
 
 ## Environment
 
-Python 3.9 is the currently tested interpreter version. The project was
-developed in a Conda environment with PyBullet, NumPy, SciPy, PyTorch, PyTorch
-Geometric, Gym, Matplotlib, and Stable-Baselines3.
+Use Python 3.11 in an isolated Conda environment on Windows x86-64 or macOS
+Apple Silicon. Install the native ARM64 Anaconda distribution on Apple Silicon.
+The shared requirements contain MuJoCo, MorphGNN/PPO dependencies, Jupyter,
+and debugging tools. MuJoCo is the only physics backend and uses its official
+Python wheels on both Windows and Apple Silicon macOS.
+
+On macOS, the passive native viewer must be launched with `mjpython`; headless
+runs and Windows native windows use `python`.
 
 ```bash
-conda create -n robot-sim python=3.9 -y
+conda env create -f environment.yml
 conda activate robot-sim
-pip install -r requirements.txt
+python scripts/setup_environment.py
+python -m pip check
+python -m pytest tests -q
 ```
 
-For CUDA installations, install mutually compatible PyTorch and PyTorch
-Geometric builds for the local driver and toolkit.
+The installer reads the same requirements on both systems.
+
+Alternatively, create the interpreter and install the same requirements. This
+explicit channel override also avoids the default-channel Terms of Service
+check in fresh Anaconda installations that run it before reading the YAML:
+
+```bash
+conda create -n robot-sim -c conda-forge --override-channels python=3.11 pip -y
+conda env config vars set -n robot-sim PYTHONUTF8=1
+conda activate robot-sim
+python scripts/setup_environment.py
+```
+
+Conda manages the interpreter; pip manages the project's Python packages.
+Keep project packages out of `base`. NumPy is pinned for consistent scientific
+and training dependencies. The robot environment uses Gymnasium. Windows-only
+dependencies have platform markers and are skipped on macOS. PyTorch is
+pinned without a CUDA suffix so pip can install the native platform package.
+For a Windows CPU-only build, use:
+
+```bash
+python -m pip install --force-reinstall --no-deps torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+```
+
+For Windows with an NVIDIA driver compatible with CUDA 11.8, install that
+build before the shared requirements (or replace the installed build):
+
+```bash
+python -m pip install --force-reinstall --no-deps torch==2.7.1 --index-url https://download.pytorch.org/whl/cu118
+python scripts/setup_environment.py
+```
+
+Existing scripts automatically select CPU on macOS; they do not automatically
+select Apple's MPS backend. PyG's optional compiled extensions are not required
+for the current GATv2 models. CPU is the baseline for debugging.
+
+For notebooks, register the environment once and select **Python (robot-sim)**:
+
+```bash
+python -m ipykernel install --user --name robot-sim --display-name "Python (robot-sim)"
+python -m jupyterlab
+```
+
+In VS Code or PyCharm, select the `robot-sim` Conda interpreter and use the
+repository root as the working directory. On macOS, MuJoCo scripts using
+`mujoco.viewer.launch_passive` must be launched with the environment's
+`mjpython` command. To open the standalone MuJoCo viewer:
+
+```bash
+python -m mujoco.viewer
+```
+
+Verified locally on 2026-10-08 with macOS 26.6 ARM64 and Python 3.11.17:
+dependency consistency, the existing test suite, GNN checkpoint inference and
+training, MPC, robot URDF loading and PPO environment stepping, the existing
+MuJoCo physics, offscreen rendering, and passive GUI. Windows
+Python 3.11 package availability and platform markers were checked; Windows
+runtime validation still requires a Windows machine.
 
 ## Main Workflows
+
+See [scripts/README.md](scripts/README.md) for the purpose of each retained entry point.
 
 Generate the supervised morphology dataset:
 
@@ -283,23 +282,23 @@ python scripts/train.py --model full
 python scripts/train.py --model lite
 ```
 
-Run the interactive PyBullet controller:
+Run the interactive MuJoCo controller:
 
 ```bash
-python scripts/run_mpc_gui.py
+mjpython scripts/run_mujoco_gui.py --source formula
 ```
 
 Run the three-layer scripted benchmark:
 
 ```bash
-python scripts/evaluate_brain.py
+python scripts/evaluate_mujoco.py --scene C --seconds 40 --source formula
 ```
 
 Train or evaluate the experimental PPO brain:
 
 ```bash
-python scripts/train_drl_brain.py
-python scripts/evaluate_drl.py
+python scripts/train_mujoco_brain.py --scene B --source formula
+python scripts/evaluate_mujoco.py --mode ppo --policy experiments/mujoco_ppo_<time>/ppo_mujoco.zip
 ```
 
 ## Evaluation and Ablation
@@ -307,12 +306,9 @@ python scripts/evaluate_drl.py
 ```bash
 python scripts/eval_gnn_ablation.py
 python scripts/eval_gnn_attention.py
-python scripts/eval_gnn_robustness.py
 python scripts/eval_mpc_benchmark.py
-python scripts/eval_pid_ablation.py
-python scripts/eval_scene_b_tracking.py
 python scripts/test_mpc_pure_kinematics.py
-python scripts/test_mpc_pybullet.py
+python scripts/test_phi3_stability.py
 ```
 
 The paper-oriented comparison matrix should cover:

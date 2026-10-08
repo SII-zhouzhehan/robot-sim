@@ -22,6 +22,7 @@
 /scripts/**
 !/scripts/**/
 !/scripts/**/*.py
+!/scripts/README.md
 
 !/tests/
 /tests/**

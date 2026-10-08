@@ -79,7 +79,7 @@ class SwerveDriveController:
         
         # ★ 关键修复: 用 current + error (增量式) 代替 normalized target
         # 原来 return target 会在 ±180° 边界产生 ~360° 跳变
-        # 增量式保证输出永远连续, 不会触发 PyBullet 急速旋转
+        # 增量式保证输出永远连续，避免转向目标跳变
         # steering joint 是 continuous 类型, 角度不受限
         final_angle = current + error
         

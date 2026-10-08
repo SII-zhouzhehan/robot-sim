@@ -1,4 +1,3 @@
-import pybullet as p
 import numpy as np
 from brains.base_brain import BaseBrain
 
