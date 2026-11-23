@@ -24,6 +24,24 @@ Graph-based discovery and simulation validation are the algorithmic focus.
 > is useful for reading and developing the control code, but it cannot reproduce
 > the complete MuJoCo experiments without the private local assets.
 
+## Current robot on FR500T
+
+New locomotion and spinal-graph experiments use the imported
+`data/my_robot/mujoco/tars_mjcf_grounded/scene.xml`. From the repository root
+run `python scripts/check_tars_control.py` in the robot-sim environment.
+Each run writes a new local `experiments/tars_grounded_*/baseline.json`.
+The scene and meshes stay in the private `data/my_robot/` directory and are
+not included in Git. A Mac checkout needs those private assets copied locally
+before this simulation can run.
+
+With `src` on the Python path, `from envs import MorphingRobotEnv` opens this
+scene. `env.drive(vx, vy, omega)` commands a world-frame twist in m/s and rad/s.
+`env.step({"blocks": q8, "steering": q4, "velocity": w4})` uses joint radians
+and wheel rad/s in CAD module order. The four pivots are passive. Observations
+contain measured angles for all four groups. The basic planar controller
+requires upright modules. Scripts for the old Phi trajectory, PPO, A/B/C
+benchmarks and loop-search reproduction use their historical backend.
+
 ## Research Question
 
 How can a robot discover and use its stage-dependent mechanical constraints to

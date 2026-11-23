@@ -12,6 +12,12 @@ from scipy.spatial import ConvexHull
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_URDF = PROJECT_ROOT / "data/my_robot/robot1231_2.urdf"
 DEFAULT_MODEL = PROJECT_ROOT / "data/my_robot/mujoco/robot.xml"
+# Resolve historical experiments against the locally archived assets.
+_archive = PROJECT_ROOT / "data/archive/legacy_models_20261123"
+if not DEFAULT_MODEL.exists() and (_archive / "mujoco/robot.xml").is_file():
+    DEFAULT_MODEL = _archive / "mujoco/robot.xml"
+if not DEFAULT_URDF.exists() and (_archive / "urdf/robot1231_2.urdf").is_file():
+    DEFAULT_URDF = _archive / "urdf/robot1231_2.urdf"
 BLOCK_NAMES = tuple(f"joint{i}" for i in range(1, 8))
 STEERING_NAMES = ("joint9", "joint12", "joint15", "joint18")
 WHEEL_NAMES = ("joint10", "joint13", "joint16", "joint19")

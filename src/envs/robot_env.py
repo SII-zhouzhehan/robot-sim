@@ -7,6 +7,8 @@ MuJoCo implementation directly.
 
 from .mujoco_robot_env import MujocoRobotEnv
 
-MorphingRobotEnv = MujocoRobotEnv
+from .tars_grounded import TarsGroundedEnv
 
-__all__ = ["MorphingRobotEnv", "MujocoRobotEnv"]
+MorphingRobotEnv = TarsGroundedEnv
+
+__all__ = ["MorphingRobotEnv", "TarsGroundedEnv", "MujocoRobotEnv"]

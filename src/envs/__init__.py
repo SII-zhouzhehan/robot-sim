@@ -4,11 +4,13 @@ from .mujoco_benchmark_env import MujocoBenchmarkEnv
 from .mujoco_brain_gym_env import MujocoBrainGymEnv
 from .configs import ROBOT_CONFIGS
 
-MorphingRobotEnv = MujocoRobotEnv
+from .tars_grounded import TarsGroundedEnv
+
+MorphingRobotEnv = TarsGroundedEnv
 BenchmarkEnv = MujocoBenchmarkEnv
 BrainGymEnv = MujocoBrainGymEnv
 
 __all__ = [
     "MujocoRobotEnv", "MujocoBenchmarkEnv", "MujocoBrainGymEnv",
-    "MorphingRobotEnv", "BenchmarkEnv", "BrainGymEnv", "ROBOT_CONFIGS",
+    "MorphingRobotEnv", "TarsGroundedEnv", "BenchmarkEnv", "BrainGymEnv", "ROBOT_CONFIGS",
 ]

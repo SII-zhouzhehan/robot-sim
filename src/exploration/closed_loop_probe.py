@@ -31,10 +31,12 @@ def closed_physical_edges(model, joint_ids):
     for body in range(model.nbody):
         union(body, int(model.body_weldid[body]))
     for eq in range(model.neq):
-        if (model.eq_type[eq] == mujoco.mjtEq.mjEQ_WELD
-                and model.eq_objtype[eq] == mujoco.mjtObj.mjOBJ_BODY
-                and model.eq_active0[eq]):
-            union(int(model.eq_obj1id[eq]), int(model.eq_obj2id[eq]))
+        if model.eq_type[eq] != mujoco.mjtEq.mjEQ_WELD or not model.eq_active0[eq]:
+            continue
+        first, second = model.eq_obj1id[eq], model.eq_obj2id[eq]
+        if model.eq_objtype[eq] == mujoco.mjtObj.mjOBJ_SITE:
+            first, second = model.site_bodyid[[first, second]]
+        union(int(first), int(second))
     endpoints = []
     for joint in joint_ids:
         child = int(model.jnt_bodyid[joint])
