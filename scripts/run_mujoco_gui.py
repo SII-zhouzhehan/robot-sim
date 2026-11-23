@@ -1,12 +1,14 @@
 """MuJoCo manual control: MorphGNN/formula + PID + four-wheel swerve."""
 import argparse
 import json
+import math
 from pathlib import Path
 import sys
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from controllers.mujoco_control import MujocoDriveController
+from envs.mujoco_model import DEFAULT_PIVOT_DAMPING, DEFAULT_PIVOT_FRICTIONLOSS
 from envs.mujoco_robot_env import MujocoRobotEnv
 from utils.mujoco_control_panel import ControlPanel, ControlState
 
@@ -23,13 +25,23 @@ def main():
     parser.add_argument("--no-pid", action="store_true")
     parser.add_argument("--no-panel", action="store_true", help="Use the native viewer's keyboard controls")
     parser.add_argument("--headless", action="store_true")
+    parser.add_argument("--passive-pivots", action=argparse.BooleanOptionalAction, default=True,
+                        help="Gravity-driven hinges with friction; --no-passive-pivots restores the legacy upright servo")
+    parser.add_argument("--pivot-frictionloss", type=float, default=DEFAULT_PIVOT_FRICTIONLOSS,
+                        help="Dry pivot friction in Nm (provisional default: .05)")
+    parser.add_argument("--pivot-damping", type=float, default=DEFAULT_PIVOT_DAMPING,
+                        help="Viscous pivot damping in Nm*s/rad (provisional default: .05)")
     parser.add_argument("--seconds", type=float, help="Stop after this many simulated seconds")
     args = parser.parse_args()
     if args.seconds is not None and args.seconds <= 0:
         parser.error("--seconds must be positive")
     if args.headless and args.seconds is None:
         parser.error("--headless requires --seconds")
-    env = MujocoRobotEnv(args.model, gui=not args.headless, control_steps=4)
+    if any(not math.isfinite(v) or v < 0 for v in (args.pivot_frictionloss, args.pivot_damping)):
+        parser.error("Pivot resistance must be finite and nonnegative")
+    env = MujocoRobotEnv(args.model, gui=not args.headless, control_steps=4,
+                        passive_pivots=args.passive_pivots, pivot_frictionloss=args.pivot_frictionloss,
+                        pivot_damping=args.pivot_damping)
     panel = None
     try:
         controller = MujocoDriveController(env, args.source, args.checkpoint, not args.no_pid)
@@ -75,6 +87,9 @@ def main():
         simulated = float(env.data.time) - sim_start
         wall_seconds = time.perf_counter() - wall_start
         print(json.dumps({"engine": "mujoco", "phi": controller.phi,
+                          "pivot_actuation": "passive" if env.passive_pivots else "legacy_active_hold",
+                          "pivot_frictionloss_nm": args.pivot_frictionloss,
+                          "pivot_damping_nms_rad": args.pivot_damping,
                           "simulated_seconds": simulated, "wall_seconds": wall_seconds,
                           "realtime": simulated / max(wall_seconds, 1e-6), "pose": env.get_robot_pose(),
                           "velocity": env.get_world_velocity(), **env.get_contact_summary()}, indent=2))

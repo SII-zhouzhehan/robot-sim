@@ -87,7 +87,8 @@ class MujocoDriveController:
         self.pid.reset()
         self.swerve.last_angles.update(dict(zip(self.env.STEER_CORNER_ORDER, self.env.get_steering_positions())))
 
-    def advance(self, vx=0.0, vy=0.0, omega=0.0, phi_target=1.5, source=None, use_pid=None):
+    def advance(self, vx=0.0, vy=0.0, omega=0.0, phi_target=1.5, source=None, use_pid=None,
+                *, physics_callback=None):
         target = float(np.clip(phi_target, 0, 3))
         self.phi += float(np.clip(target - self.phi, -self.phi_rate * self.env.control_dt,
                                   self.phi_rate * self.env.control_dt))
@@ -109,5 +110,6 @@ class MujocoDriveController:
         settled = np.max(np.abs(self.env.joint_positions(self.env.block_ids) - blocks)) < 0.05
         self.env.set_pivot_lock(abs(target - self.phi) < 0.005 and settled)
         action = {"blocks": blocks, "steering": steering, "velocity": velocity}
-        result = self.env.step(action)
+        result = (self.env.step(action) if physics_callback is None else
+                  self.env.step(action, physics_callback=physics_callback))
         return result

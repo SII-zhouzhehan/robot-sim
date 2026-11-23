@@ -52,6 +52,32 @@ def test_stationary_robot_remains_supported(robot):
     assert robot.get_contact_summary()["wheel_contacts"] == 4
 
 
+def test_physics_observer_sees_every_tick_without_changing_trajectory(robot):
+    from evaluation.mujoco_loads import JointLoadSampler
+    sampler = JointLoadSampler(robot.model)
+    controller = MujocoDriveController(robot, source="formula")
+    saved = mujoco.MjData(robot.model)
+    mujoco.mj_copyData(saved, robot.model, robot.data)
+    times, readings = [], []
+
+    def observe(env):
+        times.append(float(env.data.time))
+        readings.append(sampler.sample(env.data))
+
+    controller.advance(phi_target=1.51, physics_callback=observe)
+    observed_qpos = robot.data.qpos.copy()
+    observed_qvel = robot.data.qvel.copy()
+    mujoco.mj_copyData(robot.data, robot.model, saved)
+    robot._pivot_anchors = None
+    controller = MujocoDriveController(robot, source="formula")
+    controller.advance(phi_target=1.51)
+    np.testing.assert_array_equal(robot.data.qpos, observed_qpos)
+    np.testing.assert_array_equal(robot.data.qvel, observed_qvel)
+    assert len(times) == robot.control_steps
+    np.testing.assert_allclose(np.diff(times), robot.dt)
+    assert np.isfinite(readings[0]["torque_nm"]).all()
+
+
 @pytest.mark.parametrize("command,axis", [((.12, 0, 0), 0), ((0, .12, 0), 1), ((0, 0, .3), 2)])
 def test_swerve_moves_in_commanded_world_direction(robot, command, axis):
     controller = MujocoDriveController(robot, source="formula")

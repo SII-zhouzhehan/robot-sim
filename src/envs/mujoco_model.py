@@ -16,6 +16,9 @@ BLOCK_NAMES = tuple(f"joint{i}" for i in range(1, 8))
 STEERING_NAMES = ("joint9", "joint12", "joint15", "joint18")
 WHEEL_NAMES = ("joint10", "joint13", "joint16", "joint19")
 PIVOT_NAMES = ("joint8", "joint11", "joint14", "joint17")
+# Provisional bearing resistance; tune against physical breakaway measurements.
+DEFAULT_PIVOT_FRICTIONLOSS = 0.05  # Nm at each hinge output.
+DEFAULT_PIVOT_DAMPING = 0.05  # Nm*s/rad.
 
 
 def read_stl(path):
@@ -64,7 +67,10 @@ def convex_collision(triangles):
     return result
 
 
-def build_model(urdf_path=DEFAULT_URDF, output_path=DEFAULT_MODEL, voxel_size=0.004):
+def build_model(urdf_path=DEFAULT_URDF, output_path=DEFAULT_MODEL, voxel_size=0.004, *,
+                pivot_frictionloss=DEFAULT_PIVOT_FRICTIONLOSS, pivot_damping=DEFAULT_PIVOT_DAMPING):
+    if any(not np.isfinite(v) or v < 0 for v in (pivot_frictionloss, pivot_damping)):
+        raise ValueError("Pivot resistance must be finite and nonnegative")
     urdf_path, output_path = Path(urdf_path).resolve(), Path(output_path).resolve()
     if not urdf_path.is_file():
         raise FileNotFoundError(f"Private robot assets are missing: {urdf_path}")
@@ -162,6 +168,9 @@ def build_model(urdf_path=DEFAULT_URDF, output_path=DEFAULT_MODEL, voxel_size=0.
         for name in names:
             joints[name].set("actuatorfrcrange", f"{-force} {force}")
             joints[name].set("damping", "0.01")
+            if name in PIVOT_NAMES:
+                joints[name].set("frictionloss", str(pivot_frictionloss))
+                joints[name].set("damping", str(pivot_damping))
             joints[name].set("armature", "0.0001")
             ET.SubElement(actuators, "position", name=f"{name}_position", joint=name,
                           kp=str(kp), kv=str(kv), forcerange=f"{-force} {force}")

@@ -6,7 +6,8 @@ import mujoco
 import numpy as np
 
 from .configs import ROBOT_CONFIGS
-from .mujoco_model import (BLOCK_NAMES, DEFAULT_MODEL, DEFAULT_URDF, PIVOT_NAMES,
+from .mujoco_model import (BLOCK_NAMES, DEFAULT_MODEL, DEFAULT_URDF,
+                           DEFAULT_PIVOT_DAMPING, DEFAULT_PIVOT_FRICTIONLOSS, PIVOT_NAMES,
                            STEERING_NAMES, WHEEL_NAMES, build_model)
 
 
@@ -18,7 +19,9 @@ class MujocoRobotEnv:
     MAX_LINEAR_VELOCITY = MAX_WHEEL_OMEGA * WHEEL_RADIUS
     STEER_CORNER_ORDER = ("RR", "FR", "RL", "FL")
 
-    def __init__(self, model_path=None, gui=False, control_steps=1, urdf_path=DEFAULT_URDF, spec=None):
+    def __init__(self, model_path=None, gui=False, control_steps=1, urdf_path=DEFAULT_URDF, spec=None, *,
+                 pivot_frictionloss=DEFAULT_PIVOT_FRICTIONLOSS, pivot_damping=DEFAULT_PIVOT_DAMPING,
+                 passive_pivots=False):
         if not isinstance(control_steps, int) or control_steps < 1:
             raise ValueError("control_steps must be a positive integer")
         # Keep the historical constructor call ``Env(urdf_path, ...)`` usable
@@ -66,6 +69,13 @@ class MujocoRobotEnv:
         self._wheel_geom_set = set(self.wheel_geom_ids.tolist())
         self._steering_signs = np.ones(4)
         self._pivot_anchors = None
+        self._pivot_drive_gain = self.model.actuator_gainprm[self.pivot_actuators].copy()
+        self._pivot_drive_bias = self.model.actuator_biasprm[self.pivot_actuators].copy()
+        self.passive_pivots = False
+        # Apply defaults even to previously generated XML caches. Passing None
+        # explicitly preserves custom XML resistance for that parameter.
+        self.configure_pivot_resistance(frictionloss=pivot_frictionloss, damping=pivot_damping)
+        self.set_passive_pivots(passive_pivots)
 
     def _id(self, kind, name):
         value = mujoco.mj_name2id(self.model, kind, name)
@@ -85,6 +95,34 @@ class MujocoRobotEnv:
     def get_steering_positions(self):
         # Swerve's steering convention is positive rotation around world +Z.
         return self.joint_positions(self.steering_ids) * self._steering_signs
+
+    def configure_pivot_resistance(self, *, frictionloss=None, damping=None):
+        """Set passive hinge resistance before reset (Nm and Nm*s/rad).
+
+        None preserves the XML value; zero disables that resistance. Dry
+        friction is a bounded constraint torque, not a position-hold servo.
+        """
+        values = {"frictionloss": frictionloss, "damping": damping}
+        for name, value in values.items():
+            if value is not None and (not np.isfinite(value) or value < 0):
+                raise ValueError(f"pivot {name} must be finite and nonnegative")
+        dofs = self.model.jnt_dofadr[self.pivot_ids]
+        if frictionloss is not None:
+            self.model.dof_frictionloss[dofs] = frictionloss
+        if damping is not None:
+            self.model.dof_damping[dofs] = damping
+        mujoco.mj_forward(self.model, self.data)
+
+    def set_passive_pivots(self, enabled=True):
+        """Disable the legacy upright servo while retaining hinge resistance."""
+        self.passive_pivots = bool(enabled)
+        self._pivot_anchors = None
+        ids = self.pivot_actuators
+        self.model.actuator_gainprm[ids] = 0 if enabled else self._pivot_drive_gain
+        self.model.actuator_biasprm[ids] = 0 if enabled else self._pivot_drive_bias
+        if enabled:
+            self.data.ctrl[ids] = 0
+        mujoco.mj_forward(self.model, self.data)
 
     def set_configuration(self, name):
         if name not in ROBOT_CONFIGS:
@@ -120,12 +158,18 @@ class MujocoRobotEnv:
 
     def set_pivot_lock(self, enabled):
         """Capture a finite-torque hold target; never teleport joint positions."""
+        if self.passive_pivots:
+            self._pivot_anchors = None
+            return
         if enabled and self._pivot_anchors is None:
             self._pivot_anchors = self.joint_positions(self.pivot_ids)
         elif not enabled:
             self._pivot_anchors = None
 
     def update_pivot_hold(self):
+        if self.passive_pivots:
+            self.data.ctrl[self.pivot_actuators] = 0
+            return
         if self._pivot_anchors is not None:
             targets = self._pivot_anchors
         else:
@@ -150,7 +194,12 @@ class MujocoRobotEnv:
             raise ValueError(f"{name} requires {count} finite values")
         return array
 
-    def step(self, action):
+    def step(self, action, *, physics_callback=None):
+        """Advance control, optionally observing every pre-integration physics state.
+
+        The callback receives this environment after actuator targets are set.
+        Observers should copy MjData before recomputing derived physics fields.
+        """
         blocks = self._command(action.get("blocks", self.current_block_angles), 7, "blocks")
         steering = self._command(action.get("steering", self.get_steering_positions()), 4, "steering")
         velocity = self._command(action.get("velocity", np.zeros(4)), 4, "velocity")
@@ -162,6 +211,8 @@ class MujocoRobotEnv:
         self.data.ctrl[self.wheel_actuators] = np.clip(velocity, -self.MAX_WHEEL_OMEGA, self.MAX_WHEEL_OMEGA)
         for _ in range(self.control_steps):
             self.update_pivot_hold()
+            if physics_callback is not None:
+                physics_callback(self)
             mujoco.mj_step(self.model, self.data)
         # mj_step leaves Cartesian kinematics at the pre-integration state.
         mujoco.mj_forward(self.model, self.data)

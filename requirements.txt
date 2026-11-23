@@ -1,6 +1,6 @@
-# Shared Windows x86-64 / macOS Apple Silicon environment: Python 3.11.
+# Shared Linux x86-64 / Windows x86-64 / macOS Apple Silicon environment: Python 3.11.
 # Create the interpreter with environment.yml, then run scripts/setup_environment.py.
-# Choose a CUDA build separately on Windows; do not pin +cu118 here.
+# Linux PyPI wheels include CUDA runtime dependencies; do not pin +cu118 here.
 
 # Scientific computing.
 numpy==1.26.4
@@ -17,7 +17,7 @@ tensorboard==2.20.0
 tqdm==4.67.1
 
 # MuJoCo is the sole physics backend. The Python package ships native
-# Apple-Silicon and Windows wheels, so no simulator compiler toolchain is
+# Linux, Apple-Silicon and Windows wheels, so no simulator compiler toolchain is
 # required after creating the Conda environment.
 mujoco==3.15.0
 
@@ -28,6 +28,6 @@ notebook==7.5.1
 debugpy==1.8.19
 pytest==9.1.1
 
-# Windows-only notebook support; pip skips these on macOS.
+# Windows-only notebook support; pip skips these on Linux and macOS.
 pywin32==311; sys_platform == "win32"
 pywinpty==3.0.2; sys_platform == "win32"
