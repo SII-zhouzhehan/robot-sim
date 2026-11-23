@@ -16,6 +16,8 @@ def test_passive_holding_report_has_no_tracking_error_or_motor_torque(tmp_path):
     spec = importlib.util.spec_from_file_location("motor_torque_report", script)
     study = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(study)
+    if not study.DEFAULT_MODEL.exists() and not study.DEFAULT_URDF.exists():
+        pytest.skip("Private robot model and URDF assets are not present")
     args = SimpleNamespace(
         model=study.DEFAULT_MODEL, urdf=study.DEFAULT_URDF, output=tmp_path,
         control_steps=2, timestep_divisor=2, block_gain_scale=30.,
