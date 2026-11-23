@@ -5,7 +5,10 @@
 !/.gitignore
 !/.gitattributes
 !/README.md
-!/*.md
+!/CHANGELOG.md
+!/MUJOCO.md
+!/CLOSED_LOOP_SEARCH.md
+!/SINGULARITY_GRAPH_PIPELINE_2026.md
 !/requirements.txt
 !/environment.yml
 !/pyproject.toml
@@ -67,7 +70,6 @@ env/
 *.log
 
 # Private/generated research artifacts
-/ROBOT_RESEARCH_PIPELINE.md
 experiments/
 data/collected_datasets/
 data/test_results/

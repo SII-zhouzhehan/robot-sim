@@ -2,27 +2,27 @@
 
 项目现在只使用 MuJoCo。原始 URDF、STL 和训练权重作为输入资产保留，运行入口统一指向 MuJoCo。
 
-## 在当前 Mac 上启动
+## 在 Linux 工作站上启动
 
 在项目根目录执行：
 
 ```bash
 conda activate robot-sim
-mjpython scripts/run_mujoco_gui.py
+python scripts/run_mujoco_gui.py
 ```
 
-程序打开 MuJoCo 窗口和本机浏览器控制面板。面板提供 Φ、世界坐标系 X/Y 速度、旋转速度、GNN/几何公式切换、PID 开关、停止与重置。
+程序打开 MuJoCo 窗口和本机浏览器控制面板。面板提供关节角度与舵轮控制入口。Phi/GNN 控制属于旧流程参考，不代表当前三层图算法主线。
 
 默认加载最新的 `experiments/phi_run_*/best_model.pt`。没有 GNN 权重时，可以独立使用几何公式：
 
 ```bash
-mjpython scripts/run_mujoco_gui.py --source formula
+python scripts/run_mujoco_gui.py --source formula
 ```
 
 只使用原生窗口、通过键盘控制：
 
 ```bash
-mjpython scripts/run_mujoco_gui.py --no-panel
+python scripts/run_mujoco_gui.py --no-panel
 ```
 
 | 按键 | 功能 |
@@ -45,25 +45,27 @@ python scripts/run_mujoco_gui.py --headless --seconds 10 --vx 0.15
 python scripts/run_mujoco_gui.py --headless --seconds 10 --phi 3
 ```
 
-Windows 原生窗口也通过同一环境运行，将上述 `mjpython` 换成 `python`。Mac 的 `launch_passive` 窗口要求使用 `mjpython`；这是 MuJoCo 官方提供的启动器，不是额外环境。
+Linux 和 Windows 的原生窗口使用 `python`。macOS 的 `launch_passive` 窗口仍需使用同一环境里的 `mjpython`。
 
 ## 调试
 
-当前 Mac 的 `.vscode/launch.json` 已配置以下入口。由于 macOS 的 `launch_passive` 要求 `mjpython` 管理主线程，GUI 配置采用“VS Code 启动 mjpython 调试服务，再 attach”的方式。
+当前 `.vscode/launch.json` 已配置以下入口。Linux 的 GUI 直接由所选 Python 解释器启动；调试服务和 attach 任务都从 `${command:python.interpreterPath}` 取解释器，不再绑定某台机器的绝对路径。
 
-- `robot-sim: MuJoCo GUI (Mac mjpython)`：自动启动同一环境的 `mjpython` 调试服务并 attach，可在新控制器和环境中设置断点。
+- `robot-sim: MuJoCo GUI`：自动启动同一环境的调试服务并 attach，可在控制器和环境中设置断点。
 - `robot-sim: MuJoCo headless`：普通 Python，适合单步调试物理状态和控制计算。
-- `robot-sim: MuJoCo scripted scene B`：自动任务、MPC 和 GNN 的窗口调试，也通过 mjpython attach。
+- `robot-sim: MuJoCo scripted scene B`：自动任务、MPC 和 GNN 的窗口调试。
 
-在 VS Code 的“运行和调试”面板中选择 **`robot-sim: MuJoCo GUI (Mac mjpython)`** 后点击绿色启动按钮。第一次启动会先在集成终端运行后台调试服务，随后 VS Code 自动连接；不要选择 `Current Python file` 或普通 Python 的 MuJoCo GUI 配置。
+在 VS Code 的“运行和调试”面板中选择 **`robot-sim: MuJoCo GUI`** 后点击绿色启动按钮。第一次启动会先在集成终端运行后台调试服务，随后 VS Code 自动连接；运行前请在 IDE 中选择 Linux 上实际的 `robot-sim` Python 环境。
 
-在 IDE 中选择 `robot-sim` Conda 环境的解释器。IDE 配置属于本机文件，不提交到仓库；在 Windows 或其他 Mac 上重新选择各自的解释器。
+IDE 配置属于本机文件，不提交到仓库；切换工作站或环境后只需重新选择对应的 Python 解释器。
 
 也可以通过终端等待调试器连接：
 
 ```bash
-mjpython -m debugpy --listen 127.0.0.1:5678 --wait-for-client scripts/run_mujoco_gui.py
+python -m debugpy --listen 127.0.0.1:5678 --wait-for-client scripts/run_mujoco_gui.py
 ```
+
+macOS 原生窗口仍使用 `mjpython -m debugpy ...`，其余参数相同。
 
 ## 模型与资产
 
@@ -112,7 +114,7 @@ MuJoCo 的执行器、摩擦及接触参数需要通过本后端的实验重新�
 
 ```bash
 # 自动大脑 → MPC → PID/Swerve → MuJoCo，默认 GNN 形态控制
-mjpython scripts/evaluate_mujoco.py --scene B --gui --seconds 40
+python scripts/evaluate_mujoco.py --scene B --gui --seconds 40
 
 # 无窗口评估 A 窄门、B 航点、C 复合场景
 python scripts/evaluate_mujoco.py --scene A --seconds 60
@@ -138,7 +140,7 @@ python scripts/train_mujoco_brain.py --scene B --timesteps 20000
 python scripts/evaluate_mujoco.py --mode ppo --policy experiments/mujoco_ppo_<时间>/ppo_mujoco.zip --scene B
 ```
 
-已有 PPO 权重若维度一致可以加载用于迁移实验，但新环境的物理、奖励与终止条件有差异，应重新训练或微调。已有 MorphGNN 权重可以直接加载，节点与关节映射保持一致。
+PPO 和 MorphGNN 权重说明仅适用于对应的历史环境与基线。新研究应按三层图状态、动作和奖励定义重新验证策略接口。
 
 ## 文件对应关系
 
