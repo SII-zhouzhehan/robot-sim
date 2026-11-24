@@ -69,14 +69,24 @@ venv/
 env/
 *.log
 
-# Private/generated research artifacts
+# Private/generated research artifacts and local working notes
 experiments/
+artifacts/
+.codex-build/
 data/collected_datasets/
 data/test_results/
 data/my_robot/
 checkpoints/
 runs/
 outputs/
+AGENTS.md
+WORKSPACE_MAINTENANCE.md
+TARS*.md
+CLOSED_LOOP_TRIAL.md
+GRAPH_ALGORITHMS_RESEARCH.md
+MOTION_DISCOVERY_DEMO.md
+ROBOT_RESEARCH_PIPELINE.md
+MUJOCO_LOG.TXT
 *.npy
 *.npz
 *.csv
@@ -84,6 +94,8 @@ outputs/
 *.pth
 *.ckpt
 *.onnx
+*.gif
+*.mp4
 
 # OS files
 .DS_Store
