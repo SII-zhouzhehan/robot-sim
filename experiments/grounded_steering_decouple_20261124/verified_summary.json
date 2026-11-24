@@ -1,0 +1,351 @@
+{
+  "drive": {
+    "x+": {
+      "four_pct": 97.31,
+      "tire_frac": 0.8522,
+      "peak_tilt_deg": 1.85,
+      "stop_tilt_deg": 0.41,
+      "max_stroke_mm": 1.335,
+      "p95_stroke_mm": 0.776,
+      "yaw_drift_deg": 0.28,
+      "delta_xy_cm": [
+        15.05,
+        0.05
+      ],
+      "delta_yaw_deg": -0.04,
+      "max_tire_pen_mm": 0.774,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    },
+    "x-": {
+      "four_pct": 96.54,
+      "tire_frac": 0.8486,
+      "peak_tilt_deg": 1.99,
+      "stop_tilt_deg": 0.42,
+      "max_stroke_mm": 1.23,
+      "p95_stroke_mm": 0.817,
+      "yaw_drift_deg": 0.24,
+      "delta_xy_cm": [
+        -15.08,
+        0.09
+      ],
+      "delta_yaw_deg": -0.2,
+      "max_tire_pen_mm": 0.788,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    },
+    "y+": {
+      "four_pct": 97.69,
+      "tire_frac": 0.7714,
+      "peak_tilt_deg": 0.27,
+      "stop_tilt_deg": 0.04,
+      "max_stroke_mm": 1.575,
+      "p95_stroke_mm": 1.373,
+      "yaw_drift_deg": 0.22,
+      "delta_xy_cm": [
+        -0.02,
+        14.86
+      ],
+      "delta_yaw_deg": 0.06,
+      "max_tire_pen_mm": 0.967,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    },
+    "y-": {
+      "four_pct": 97.69,
+      "tire_frac": 0.7735,
+      "peak_tilt_deg": 0.22,
+      "stop_tilt_deg": 0.04,
+      "max_stroke_mm": 1.477,
+      "p95_stroke_mm": 1.316,
+      "yaw_drift_deg": 0.17,
+      "delta_xy_cm": [
+        -0.01,
+        -14.87
+      ],
+      "delta_yaw_deg": 0.02,
+      "max_tire_pen_mm": 0.982,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    },
+    "yaw+": {
+      "four_pct": 98.85,
+      "tire_frac": 0.8244,
+      "peak_tilt_deg": 0.36,
+      "stop_tilt_deg": 0.29,
+      "max_stroke_mm": 1.684,
+      "p95_stroke_mm": 1.21,
+      "yaw_drift_deg": 0.0,
+      "delta_xy_cm": [
+        -0.09,
+        0.04
+      ],
+      "delta_yaw_deg": 32.62,
+      "max_tire_pen_mm": 0.776,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    },
+    "yaw-": {
+      "four_pct": 98.85,
+      "tire_frac": 0.8302,
+      "peak_tilt_deg": 0.35,
+      "stop_tilt_deg": 0.29,
+      "max_stroke_mm": 1.718,
+      "p95_stroke_mm": 1.326,
+      "yaw_drift_deg": 0.0,
+      "delta_xy_cm": [
+        0.09,
+        0.04
+      ],
+      "delta_yaw_deg": -32.68,
+      "max_tire_pen_mm": 0.772,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0
+    }
+  },
+  "bump_4mm": {
+    "bump_mm": 4.0,
+    "four_pct": 98.0,
+    "after_steer_four_pct": 100.0,
+    "max_stroke_mm": 1.564,
+    "peak_tilt_deg": 0.27,
+    "delta_y_cm": 18.78,
+    "yaw_deg": 0.07
+  },
+  "morph": {
+    "still": {
+      "max_err_mm": 14.605530534136367,
+      "end_mm": 14.580412278811076,
+      "range_z_mm": 94.79849063175413,
+      "steer_travel_deg": [
+        379.3,
+        377.2,
+        377.2,
+        378.8
+      ],
+      "slip_rms_mm_s": 29.72340674830403,
+      "slip_per_wheel_mm_s": [
+        29.5,
+        29.96,
+        29.71,
+        29.71
+      ],
+      "four_pct": 99.93333333333332,
+      "strong_four_pct": 99.93,
+      "min_wheel_N": 0.0,
+      "p05_min_wheel_N": 13.97,
+      "max_unloaded_s": 0.004,
+      "tire_load_frac": 0.8058,
+      "mean_tire_N": 78.19,
+      "mean_ball_N": 18.84,
+      "max_tire_pen_mm": 1.315,
+      "max_ball_pen_mm": 0.444,
+      "max_stroke_mm": 3.08,
+      "p95_stroke_mm": 2.657,
+      "mean_active_stroke_mm": 0.717,
+      "bottomout_pct": 0.0,
+      "peak_tilt_deg": 5.99,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 1512.5,
+      "max_wheel_steer_deg": 379.3,
+      "max_abs_steer_deg": 183.0,
+      "phi2_max_swing_deg": 89.1
+    },
+    "moving": {
+      "max_err_mm": 15.154757888613531,
+      "end_mm": 4.223161407869575,
+      "range_z_mm": 95.0262051561667,
+      "steer_travel_deg": [
+        481.9,
+        402.1,
+        384.3,
+        416.2
+      ],
+      "slip_rms_mm_s": 34.01533723532806,
+      "slip_per_wheel_mm_s": [
+        40.16,
+        33.03,
+        31.75,
+        32.05
+      ],
+      "four_pct": 97.16666666666667,
+      "strong_four_pct": 97.13,
+      "min_wheel_N": 0.0,
+      "p05_min_wheel_N": 3.87,
+      "max_unloaded_s": 0.028,
+      "tire_load_frac": 0.8329,
+      "mean_tire_N": 85.13,
+      "mean_ball_N": 17.07,
+      "max_tire_pen_mm": 1.74,
+      "max_ball_pen_mm": 0.965,
+      "max_stroke_mm": 6.245,
+      "p95_stroke_mm": 5.307,
+      "mean_active_stroke_mm": 0.636,
+      "bottomout_pct": 1.47,
+      "peak_tilt_deg": 26.79,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 1684.5,
+      "max_wheel_steer_deg": 481.9,
+      "max_abs_steer_deg": 387.4,
+      "phi2_max_swing_deg": 127.6
+    },
+    "lateral": {
+      "max_err_mm": 11.468869528236363,
+      "end_mm": 3.5916488446367,
+      "range_z_mm": 94.73374168820564,
+      "steer_travel_deg": [
+        401.6,
+        346.4,
+        344.3,
+        400.4
+      ],
+      "slip_rms_mm_s": 30.11514057503913,
+      "slip_per_wheel_mm_s": [
+        28.97,
+        31.81,
+        31.35,
+        29.14
+      ],
+      "four_pct": 100.0,
+      "strong_four_pct": 100.0,
+      "min_wheel_N": 5.07,
+      "p05_min_wheel_N": 7.1,
+      "max_unloaded_s": 0.0,
+      "tire_load_frac": 0.8013,
+      "mean_tire_N": 77.7,
+      "mean_ball_N": 19.27,
+      "max_tire_pen_mm": 1.321,
+      "max_ball_pen_mm": 0.5,
+      "max_stroke_mm": 3.376,
+      "p95_stroke_mm": 2.989,
+      "mean_active_stroke_mm": 0.73,
+      "bottomout_pct": 0.0,
+      "peak_tilt_deg": 5.99,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 1492.7,
+      "max_wheel_steer_deg": 401.6,
+      "max_abs_steer_deg": 102.5,
+      "phi2_max_swing_deg": 95.0
+    },
+    "reverse": {
+      "max_err_mm": 13.521951403994631,
+      "end_mm": 7.922635460118656,
+      "range_z_mm": 94.20945791593175,
+      "steer_travel_deg": [
+        537.0,
+        361.1,
+        371.3,
+        373.2
+      ],
+      "slip_rms_mm_s": 28.194675584760013,
+      "slip_per_wheel_mm_s": [
+        36.46,
+        24.77,
+        25.84,
+        23.7
+      ],
+      "four_pct": 98.63333333333333,
+      "strong_four_pct": 98.27,
+      "min_wheel_N": 0.0,
+      "p05_min_wheel_N": 4.39,
+      "max_unloaded_s": 0.012,
+      "tire_load_frac": 0.8252,
+      "mean_tire_N": 83.88,
+      "mean_ball_N": 17.77,
+      "max_tire_pen_mm": 1.782,
+      "max_ball_pen_mm": 0.861,
+      "max_stroke_mm": 6.048,
+      "p95_stroke_mm": 5.113,
+      "mean_active_stroke_mm": 0.672,
+      "bottomout_pct": 0.47,
+      "peak_tilt_deg": 24.75,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 1642.6,
+      "max_wheel_steer_deg": 537.0,
+      "max_abs_steer_deg": 431.0,
+      "phi2_max_swing_deg": 103.6
+    },
+    "half": {
+      "max_err_mm": 23.021633547226063,
+      "end_mm": 5.44580599859628,
+      "range_z_mm": 94.88992329251371,
+      "steer_travel_deg": [
+        413.6,
+        485.5,
+        519.5,
+        413.9
+      ],
+      "slip_rms_mm_s": 38.98766305880078,
+      "slip_per_wheel_mm_s": [
+        42.6,
+        36.26,
+        38.35,
+        38.81
+      ],
+      "four_pct": 97.3,
+      "strong_four_pct": 97.3,
+      "min_wheel_N": 0.0,
+      "p05_min_wheel_N": 9.69,
+      "max_unloaded_s": 0.06,
+      "tire_load_frac": 0.8298,
+      "mean_tire_N": 80.16,
+      "mean_ball_N": 16.44,
+      "max_tire_pen_mm": 1.459,
+      "max_ball_pen_mm": 0.581,
+      "max_stroke_mm": 4.365,
+      "p95_stroke_mm": 2.801,
+      "mean_active_stroke_mm": 0.604,
+      "bottomout_pct": 0.0,
+      "peak_tilt_deg": 5.99,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 1832.5,
+      "max_wheel_steer_deg": 519.5,
+      "max_abs_steer_deg": 358.2,
+      "phi2_max_swing_deg": 132.8
+    },
+    "coast": {
+      "max_err_mm": 23.60546800151629,
+      "end_mm": 12.008193298815911,
+      "range_z_mm": 96.96980947796102,
+      "steer_travel_deg": [
+        78.8,
+        71.8,
+        71.3,
+        78.6
+      ],
+      "slip_rms_mm_s": 56.993791766235965,
+      "slip_per_wheel_mm_s": [
+        57.87,
+        56.29,
+        56.05,
+        57.73
+      ],
+      "four_pct": 90.3,
+      "strong_four_pct": 90.27,
+      "min_wheel_N": 0.0,
+      "p05_min_wheel_N": 0.0,
+      "max_unloaded_s": 0.138,
+      "tire_load_frac": 0.7929,
+      "mean_tire_N": 75.78,
+      "mean_ball_N": 19.79,
+      "max_tire_pen_mm": 3.941,
+      "max_ball_pen_mm": 0.804,
+      "max_stroke_mm": 4.689,
+      "p95_stroke_mm": 4.097,
+      "mean_active_stroke_mm": 0.796,
+      "bottomout_pct": 0.0,
+      "peak_tilt_deg": 5.99,
+      "house_max_N": 0.0,
+      "other_max_N": 0.0,
+      "total_4w_steer_deg": 300.5,
+      "max_wheel_steer_deg": 78.8,
+      "max_abs_steer_deg": 36.3,
+      "phi2_max_swing_deg": 18.0
+    }
+  }
+}

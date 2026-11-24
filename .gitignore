@@ -97,6 +97,42 @@ MUJOCO_LOG.TXT
 *.gif
 *.mp4
 
+# Workstation sync allowlist (explicitly un-ignored for GitHub transfer to Linux)
+!/TARS_大组会汇报逐页稿_20min.md
+!/TARS三层控制架构与脊髓三图方案讨论稿.md
+
+!/data/my_robot/
+/data/my_robot/*
+!/data/my_robot/mujoco/
+/data/my_robot/mujoco/*
+!/data/my_robot/mujoco/robot_closed_loop.xml
+!/data/my_robot/mujoco/tars_mjcf_grounded/
+/data/my_robot/mujoco/tars_mjcf_grounded/*
+!/data/my_robot/mujoco/tars_mjcf_grounded/robot.xml
+!/data/my_robot/mujoco/tars_mjcf_grounded/scene.xml
+!/data/my_robot/mujoco/tars_mjcf_grounded/assets/
+/data/my_robot/mujoco/tars_mjcf_grounded/assets/*
+!/data/my_robot/mujoco/tars_mjcf_grounded/assets/*.stl
+
+!/experiments/
+/experiments/*
+!/experiments/grounded_phi0_3/
+/experiments/grounded_phi0_3/*
+!/experiments/grounded_phi0_3/cad_sweep.py
+!/experiments/grounded_phi_buffer/
+/experiments/grounded_phi_buffer/*
+!/experiments/grounded_phi_buffer/control.py
+!/experiments/grounded_heading_audit/
+/experiments/grounded_heading_audit/*
+!/experiments/grounded_heading_audit/study.py
+!/experiments/grounded_caster_suspension_20261124/
+/experiments/grounded_caster_suspension_20261124/*
+!/experiments/grounded_caster_suspension_20261124/build_suspension.py
+!/experiments/grounded_caster_suspension_20261124/sweep.py
+!/experiments/grounded_steering_decouple_20261124/
+/experiments/grounded_steering_decouple_20261124/*
+!/experiments/grounded_steering_decouple_20261124/verified_summary.json
+
 # OS files
 .DS_Store
 Thumbs.db

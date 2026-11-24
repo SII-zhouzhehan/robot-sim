@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="ctm_test_scene">
+  <include file="robot.xml" />
+  <option timestep="0.002" integrator="implicitfast">
+    <flag diagexact="enable" />
+  </option>
+  <statistic center="-0.23660109535368556 1.322271715119536 0.21345012671538637" extent="0.9385352320388156" />
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+    <rgba haze="0.15 0.25 0.35 1" />
+    <global azimuth="115" elevation="-20" />
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+    <texture type="2d" name="ctm_groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="ctm_groundplane" texture="ctm_groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+  </asset>
+  <worldbody>
+    <light pos="0 0 3.5" dir="0 0 -1" directional="true" />
+    <geom name="ctm_floor" size="0 0 0.05" pos="0 0 0" type="plane" material="ctm_groundplane" friction="1 0.005 0.0001" />
+  </worldbody>
+  <contact>
+    <pair name="rubber_floor_w1" geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_140_collision_0" condim="3" friction="0.8 0.8 0.005 0.0001 0.0001" solref="0.032 1" solimp="0.9 0.95 0.001 0.5 2" />
+    <pair name="rubber_floor_w2" geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_086_collision_0" condim="3" friction="0.8 0.8 0.005 0.0001 0.0001" solref="0.032 1" solimp="0.9 0.95 0.001 0.5 2" />
+    <pair name="rubber_floor_w3" geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_059_collision_0" condim="3" friction="0.8 0.8 0.005 0.0001 0.0001" solref="0.032 1" solimp="0.9 0.95 0.001 0.5 2" />
+    <pair name="rubber_floor_w4" geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_113_collision_0" condim="3" friction="0.8 0.8 0.005 0.0001 0.0001" solref="0.032 1" solimp="0.9 0.95 0.001 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_147_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_152_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_093_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_098_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_066_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_071_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_120_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="link_insert_cd6ae4a9bfcf_part_125_collision_0" condim="3" friction="0.02 0.02 0.005 0.0001 0.0001" solref="0.006 1" solimp="0.92 0.97 0.0005 0.5 2" />
+    <pair geom1="ctm_floor" geom2="caster_w1a_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w1b_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w2a_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w2b_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w3a_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w3b_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w4a_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+    <pair geom1="ctm_floor" geom2="caster_w4b_housing_collision" condim="3" friction="0.35 0.35 0.005 0.0001 0.0001" solref="0.005 1" />
+  </contact>
+</mujoco>
