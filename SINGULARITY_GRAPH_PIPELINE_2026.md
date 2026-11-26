@@ -2,6 +2,8 @@
 
 更新日期：2026-11-14
 
+> **当前 Exp A 口径（2026-11-25）**：本文件保留较早的约束扫描与文献分析，不能直接作为新探索器的数据接口或动作先验。新 Exp A 从实测关节零位开始，学习器只获得 XML 硬件连接和事先声明的传感器反馈。姿态进度、参考姿态库、内部约束矩阵和解析雅可比不得输入探索器。当前图名统一为 `G_struct`（XML 硬件连接）、`G_local(s)`（反馈学到的阶段内运动关系）和 `G_transition`（反馈学到的阶段转换）。旧名 `G_mode` 中的分组信息并入相应阶段的 `G_local(s)`；旧 `G_state` 对应 `G_local(s)`，旧 `G_phase` 对应 `G_transition`。详见 [Exp A 三图自主发现计划](experiments/EXP_A_THREE_GRAPH_DISCOVERY_PLAN.md)。
+
 ## 0. 总体判断
 
 这版 Pipeline 的总体方向是对的：

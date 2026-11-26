@@ -12,9 +12,12 @@ stage-dependent mechanical constraints with a three-layer graph representation.
 - **Spinal layer** explores and optimizes three graph layers representing
   effective topology modes, within-stage joint constraints, and transitions.
 
-Phi remains a useful coordinate along a known reference path. It cannot
-represent the full reconfiguration space and is not the spinal controller.
-Graph-based discovery and simulation validation are the algorithmic focus.
+The planned spinal discovery experiment starts each episode at measured joint
+zero. Its learner receives only the XML hardware-connectivity graph, declared
+sensor feedback, and its own commands. It does not use a posture-progress
+coordinate, preset stage labels, a reference morphing path, or hidden simulator
+constraints. The XML graph is the static hardware prior; local joint-response
+graphs and the directed stage-transition graph are built from repeated probes.
 
 > **Source-only public release**
 >
@@ -69,17 +72,18 @@ movement during reconfiguration is a key research challenge.
 
 The spinal layer is the main algorithmic research focus:
 
-1. **Effective topology-mode graph** groups parts with stable relative pose and
-   records active constraints and remaining motion.
-2. **Within-stage constraint graph** represents joint couplings and admissible
-   motion within a mode.
-3. **Stage-transition graph** records reachable modes, transition conditions,
-   and validated outcomes.
+1. **Hardware-structure graph** comes from XML and records modules, joints,
+   actuators, sensors, and physical loop connections.
+2. **Within-stage motion graph** is learned for each discovered behavior mode
+   from commanded actions and measured joint responses.
+3. **Stage-transition graph** is learned from repeatable behavior changes and
+   stores tested actions, observable guards, outcomes, and failure evidence.
 
-The graphs are inferred from model feedback and checked through simulation.
-Phi can initialize or index a known reference trajectory, but it is not a
-complete morphology representation. A GNN decoder is not the current method
-focus.
+Only the hardware graph is known at the beginning. The other two start empty and
+are updated through repeated safe exploration and retesting. The graph is a
+memory and interface representation. Whether it improves discovery or control
+must be shown against equal-budget matrix and flat-memory baselines. A GNN is an
+optional comparison, not a required part of the representation.
 
 ## Benchmark Tasks
 

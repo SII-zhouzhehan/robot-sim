@@ -19,6 +19,8 @@
 
 **核心主张**　TARS 的目标是验证一个面向闭链可变形机器人的完整控制闭环：大脑提出任务与目标阶段，脊髓基于三张图发现并执行可行变形，小脑把变形和舵轮运动协调起来，实际反馈再用于判断动作是否可继续、是否到达或需要重规划。三图是控制信息的组织方式，研究价值要由可复现的闭环任务和对照实验来证明。
 
+**三图实验口径（最新）**　一次完整的 Exp A 活动包含多轮试探、复位、图更新、冻结和独立复测，不能用一次动作或一次连续运行同时证明“发现”和“复用”。`G_struct` 由 XML 读取并在整个实验中固定，不属于学习结果；`G_local(s)` 由阶段内反馈建立，`G_transition` 根据可重复的局部响应和复位重测建立。只有冻结图后的新 episode 仍能执行成功，相关关系才进入 `verified`。沿途包络、轮位和支撑记录是动作边的轨迹证据与小脑接口，不是第四张图。
+
 **进度口径**　完整 CAD 闭链 MuJoCo 模型（`tars_mjcf_grounded`）与 8 万向球弹簧悬挂已完成导出和基础选型/移动测试（第 10–11 页展示已保存的真实仿真数据）；工作站三图核心算法对照实验（实验 A–D）安排在第 12 页结果展位，汇报前按实际跑完进度填入实测图表，未跑完的项明确标为待完成，不夸大结论。
 
 ## 可编辑 PPT 插图通用视觉规范（适用于以下各页插图生成提示词）
@@ -124,50 +126,31 @@ Build and validate a **three-layer closed-loop control architecture** (Brain–C
 
 ### English slide text
 
-**Three core bottlenecks make closed-chain mobile morphing fundamentally hard**
+| Main Challenges | Why They Matter |
+|---|---|
+| Which joints move together in each shape? | Predicting which joints will follow helps the controller choose a feasible motor command. |
+| When does a new motion become possible? | Recognizing the transition condition helps the robot reach the next stage again after a reset. |
+| How should the wheels steer as the body changes shape? | Wheel control needs the current wheel positions. Navigation needs the clearance required along the path. |
 
-- **1. Stage-dependent coupling (beyond open chains or a single `φ`):** joints must coordinate within groups, different groups may advance independently, and later motions can require cross-group conditions.
-- **2. Feedback-verified mobility & transitions (beyond known locking formulas):** effective constraints shift with pose and contact; admissible directions and transition guards must be tested from feedback rather than assumed fixed offline.
-- **3. Coupled morphing and swerve locomotion (beyond stationary or stop-only control):** changing body geometry alters wheel positions, heading, clearance envelope, and four-wheel support in real time.
+### 三张独立插图的提示词
 
-*Illustrative mechanism hypothesis — to be verified from simulation feedback*
+三张图均为 16:9 可编辑矢量示意图，沿用前页配色与机器人轮廓。每张图对应表格中的一行。图中只保留必要的英文短标签；图注统一用 *Conceptual illustration*。
 
-### 中文对照
+**图 1 · 同一条电机指令，哪些关节跟着动？**
 
-实现上述研究目标的核心难点集中在三个与既有研究假设不同的问题：第一，闭链耦合与分阶段可行运动——关节既不能像开链那样各自独立运动，也不能仅靠单一形态参数 `φ` 表达全部可行空间，组内需协调、组间可能独立推进、后续新方向可能需要跨组联合条件；第二，约束与转换条件不可离线写死——不同于已知锁止方程的固定变胞机构，有效可动方向与阶段转换条件需由执行反馈检验；第三，变形与舵轮移动强耦合——形变实时改变轮组相对位姿、外轮廓包络与四轮接地支撑，无法当作静止并联平台或纯“停下再变”问题处理。
+> 并排画同一台八模块闭链机器人处于两种姿态，保持模块次序一致。在同一电机处画相同的蓝色指令箭头，用琥珀色虚线弧箭头标出两种姿态下可能随动的关节。将两侧指令用一个短标签 “Same command” 连起来，虚线图例写 “Possible response”。让读者一眼看到需要通过反馈比较什么。
 
-### 插图与版式
+**图 2 · 从发现一个新动作，到重置后再次做出来**
 
-采用上中下紧凑结构（或左机理图 + 右三大难点对比）：
-- **主机理示意**：画八个关节的闭链环，旁边用两个独立进度条 *Group A*、*Group B* 表示候选的组间独立进度；用一个小型条件汇合节点表现“两组都到候选边界后再测试新可动方向”，明确标注 *Candidate condition*（不写成已知解锁角或既定分组）。
-- **角落对比框**：把单参数 `φ` 作为已知参考轨迹坐标放在角落，标出 *Single `φ` = one preset path ≠ full multi-group & transition space*，直观点出它与现有单参数/开链假设的差异。
-- **底部移动耦合条**：简画变形前后四组舵轮相对位置与支撑多边形的变化箭头，标出 *Wheel pose & support shift during morphing*。全图保留显著副注 *Illustrative mechanism hypothesis — to be tested in simulation*。
+> 画上下两条路径，两行都从全关节归零的同一轮廓出发。上行画探索过程，在两个相邻姿态施加相同的小幅试探，用浅灰短线和蓝色位移弧分别表示一种假设情形下该方向受限和可动的反馈。下行画重置、重放探索中记录的动作、再次试探三个画面，末端加问号。只标 “Explore”“Reset & replay”“Same response?”。保留闭链轮廓，用反馈差异表达候选转换条件。
 
-#### 可编辑 PPT 插图生成提示词（第 3 页）
+**图 3 · 变窄过门时，轮子和机身各需要什么信息？**
 
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 3 页（Core Challenges: Closed-Chain Coupling, Stage Transitions & Swerve Coupling）的原生可编辑 PPTX 与 SVG 矢量插图，尺寸 12.1 × 5.0 in，图内全部文字使用英文。
-
-【布局结构：左侧机理图（7.3 in）+ 右侧三难点与既有假设对比（4.5 in），间距 0.3 in】
-1. 左侧机理示意区（浅灰容器，顶部小标签 "Illustrative mechanism hypothesis — to be tested in simulation"）：
-   - 左上：8 节点闭链环示意图（8 个圆角小块 B1–B8 首尾相连，节点间标 j1–j8，其中一段闭合边用琥珀虚线标 "Loop closure"；用两种淡色虚线圈出候选 "Candidate Group A" 与 "Candidate Group B"）。
-   - 右上：两条并排独立进度条 "Group A progress" 与 "Group B progress"，各带一处琥珀虚线标记 "Candidate boundary"，经一个汇合判断菱形（标注 "Candidate cross-group condition"）指向一个紫虚线框 "Test new feasible direction?"。
-   - 右中角落对比小框（淡灰边框）：画一条弯曲一维线段标 `φ` (0 → 3)，配短句 "Single φ indexes one preset path; cannot capture independent group progress or guards."
-   - 底部横条（浅蓝底 `#EFF6FF`）：左右两个简化四轮俯视框，用蓝色双箭头连接（标 "Morphing"），展示四个小轮矩形从宽方形变为窄长形，下方标 "Wheel positions, yaw frames & 4-wheel support shift concurrently."
-
-2. 右侧三难点卡片（纵向等高 3 张卡片，每张显式写出“难点 vs 既有简化假设”）：
-   - Card 1（蓝边）：标题 "1. Stage-Dependent Coupling"；对比 tag："vs. open-chain / single-φ preset"；一句话："Intra-group coordination + independent group progress."
-   - Card 2（紫边）：标题 "2. Unknown Transition Guards"；对比 tag："vs. known analytical locking"；一句话："Effective mobility & guards require feedback validation."
-   - Card 3（琥珀边）：标题 "3. Morphing–Locomotion Coupling"；对比 tag："vs. stationary / stop-only platforms"；一句话："Body shape directly perturbs swerve kinematics & support."
-
-【质量约束】所有候选分组与条件边必须用虚线表示，严禁出现具体锁定角度数字（如 90°/0°），确保无重叠、对象全矢量可编辑。
-```
+> 用俯视图画一道窄门。在同一条路径上叠画宽姿态、收窄中、窄姿态三个轮廓，四个舵轮随各自模块移动。用蓝箭头表示轮子的滚动方向，用半透明琥珀色带表示机身沿途扫过的范围，在门框内侧标出最小间隙。只标 “Wheel direction” 和 “Clearance”，让同一幅图同时体现舵轮控制和导航各自关心的信息。
 
 ### 中文讲稿
 
-承接上一页的研究目标，为什么不能直接套用开链规划或固定结构底盘控制？因为落地时有三个核心瓶颈。
-
-第一是阶段相关闭链耦合：八个电机不能像开链那样随意独立运动，也不能假设永远按单一形态参数 φ 同步推进；例如候选的 A、B 两组可能各自独立推进，而新运动方向只在跨组联合条件满足后才可动。第二是约束与转换条件不能离线写死：相比已知锁止方程的机构，我们的分组、稳定耦合与转换条件都必须从实测反馈检验。第三是变形与移动强耦合：形变实时改变轮位、朝向、外轮廓和四轮支撑，无法把机身和底盘割裂。带着这三个难点，我们看三篇最贴近的前沿工作分别做到了哪一步。
+这一页只讲三个必须解决的问题。第一，闭链机器人在不同姿态下，哪些关节会一起动可能不同，所以要从反馈中学出当前可用的运动关系。第二，机器人不能依赖 `phi` 或人工写好的阶段条件，而要从同一个初始姿态出发，通过试探发现什么时候出现新的运动能力，并在重置后复现这个转换。第三，身体变形会同时改变舵轮的位置、朝向和通过宽度，因此脊髓层需要把当前形态和可动状态传给小脑层，帮助它选择合适的移动动作。三张图分别对应这三个问题，后续实验要验证这些信息能否被三层图保存并被控制程序重新使用。
 
 ---
 
@@ -180,16 +163,25 @@ Build and validate a **three-layer closed-loop control architecture** (Brain–C
 **Prior work covers closed-loop morphing, parallel-actuated control, and reconfigurable swerve bases**
 
 #### Hierarchical Origami Metastructures · Closed-loop morphing *(Y. Li et al., Nature Communications 2024)*
-Builds thick-panel spatial closed-loop polyhedral linkages that transform into `>10³` volumetric shapes with `<3` active DOFs via analytical rigid-folding kinematics on a **stationary** metastructure.  
-**TARS adds:** feedback-based identification and repeatable retesting of stage couplings and transition conditions on an actively driven **mobile** closed-chain robot.
+Thick origami panels fold into over 1,000 shapes.
+
+**Remaining Limitations**
+
+The stationary structure follows predefined folding paths.
 
 #### BRUCE · Closed-chain locomotion control *(Y. Tanaka et al., IEEE-RAS Humanoids 2025)*
-Retains differential-pulley, 5-bar, and 4-bar parallel transmissions natively in MuJoCo MJX to train curriculum RL walking policies with zero-shot hardware transfer under a **fixed mode**.  
-**TARS adds:** a queryable **spinal three-graph interface** for *stage-varying* closed-chain morphing coupled with swerve locomotion and task planning.
+A walking policy trained in MuJoCo transfers directly to BRUCE.
+
+**Remaining Limitations**
+
+The walking controller uses a fixed mechanism mode.
 
 #### Reconfigurable Robotic Base · Morphing + swerve MPC *(J. Pankert et al., IEEE RA-L / IROS 2022)*
-Uses unified MPC to coordinate active swerve steering and footprint morphing (narrowing for tight spaces, widening for stability) on a **single-mode, analytically parameterized triangular base**.  
-**TARS adds:** swerve-and-morph coordination for an **8-block closed-chain body** whose couplings and admissible motions change across stages and are verified through spinal graphs.
+One controller coordinates wheel steering and chassis width.
+
+**Remaining Limitations**
+
+The base model assumes a single mode of deformation.
 
 ### 中文对照
 
@@ -200,7 +192,7 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
 
 ### 插图与版式
 
-严格按模板相关工作页排三张等宽卡片，每张包含“顶部示意图（自绘矢量或预留论文原图贴图框）+ 核心做法 + 蓝色/绿色高亮 `TARS adds` 差异栏”，底部加一条通栏定位条 *TARS bridges all three: Closed-loop multi-stage morphing + native MuJoCo closed-chain control + swerve-coordinated mobile navigation*：
+严格按模板相关工作页排三张等宽卡片，每张包含“顶部示意图（自绘矢量或预留论文原图贴图框）+ 核心做法 + 蓝色/绿色高亮 `Remaining Limitations` 局限栏”，底部加一条通栏定位条 *TARS bridges all three: Closed-loop multi-stage morphing + native MuJoCo closed-chain control + swerve-coordinated mobile navigation*：
 1. **Origami Metastructures (*Nat. Commun.* 2024)**：自绘或贴入厚板闭环多面体形态变换示意，标出 *Closed-loop thick blocks → >10³ shapes (stationary, analytical)*。
 2. **BRUCE (*Humanoids* 2025)**：自绘或贴入并联传动腿部示意，标出 *Native MuJoCo closed-chain → fixed-mode RL locomotion*。
 3. **Reconfigurable Swerve Base (*RA-L / IROS* 2022)**：自绘或贴入三角形舵轮底盘窄/宽切换示意，标出 *Swerve + footprint MPC (single-mode base)*。
@@ -215,24 +207,24 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
 每张卡片内部统一分为 4 层：
   (1) 顶栏标题 + 右上角小标签（一作简称与顶刊/顶会年份）；
   (2) 简明矢量示意图区（高 1.65 in，保留浅灰边框，既可直接展示也可供后续替换论文原图）；
-  (3) "What it solves" 摘要区（浅灰底，2 行精炼英文）；
-  (4) "TARS adds" 差异高亮区（浅蓝/浅绿底，2 行精炼英文）。
+  (3) "What it solves" 摘要区（浅灰底，一句简短英文）；
+  (4) "Remaining Limitations" 局限栏（浅蓝/浅绿底，一句简短英文）。
 
 三张卡片具体内容：
 - Card 1: "Origami Metastructures" | Tag: "Y. Li et al., Nat. Commun. 2024"
   * 示意图：厚板闭环多面体小块经折叠箭头变成 2–3 种不同三维轮廓，标签 "Closed-loop thick blocks → >10³ shapes (stationary, analytical)"。
-  * What it solves: "Hierarchical closed-loop thick origami achieves >10³ shapes with <3 DOFs via analytical folding."
-  * TARS adds: "Feedback-based identification & repeatable retesting of stage transitions on a mobile robot."
+  * What it solves: "Thick origami panels fold into over 1,000 shapes."
+  * Remaining Limitations: "The stationary structure follows predefined folding paths."
 
 - Card 2: "BRUCE · Parallel Humanoid" | Tag: "Y. Tanaka et al., Humanoids 2025"
   * 示意图：简化人形下肢旁画并联四杆/五杆与滑轮小图标，箭头指向 "MuJoCo MJX + Curriculum RL → Hardware"，标签 "Native closed-chain sim → fixed-mode locomotion"。
-  * What it solves: "Retains parallel closed-chain transmissions in MuJoCo for zero-shot RL walking transfer."
-  * TARS adds: "Queryable spinal three-graph interface for stage-varying morphing & upper-layer planning."
+  * What it solves: "A walking policy trained in MuJoCo transfers directly to BRUCE."
+  * Remaining Limitations: "The walking controller uses a fixed mechanism mode."
 
 - Card 3: "Reconfigurable Swerve Base" | Tag: "J. Pankert et al., RA-L / IROS 2022"
   * 示意图：带 3 组舵轮的三角形底盘在 "Narrow pass" 与 "Wide stance" 之间切换，旁标 "Unified MPC"，标签 "Active swerve + footprint morph (single-mode kinematics)"。
-  * What it solves: "Coordinates swerve steering and footprint morphing via unified MPC for narrow spaces."
-  * TARS adds: "Extends morph + swerve control to an 8-block closed chain with stage-dependent couplings."
+  * What it solves: "One controller coordinates wheel steering and chassis width."
+  * Remaining Limitations: "The base model assumes a single mode of deformation."
 
 - 底部通栏定位条（深蓝边框、浅蓝底 `#EFF6FF`）：
   * 左侧加粗徽章 "TARS Positioning"；
@@ -274,15 +266,15 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
 - **Cerebellum — body-motion and swerve coordination**  
   Balances morphing with body translation, yaw, wheel steering and wheel speed.
 
-**Feedback closes the loop:** joint response and closure status → spinal layer; clearance, support and tracking → cerebellum; outcome → brain.
+**Feedback closes the loop:** measured joint response → spinal layer; clearance, support and tracking → cerebellum; task outcome → brain. Closure residual is logged by the safety/evaluation monitor unless a real sensor explicitly exposes it.
 
 ### 中文对照
 
-大脑用 FSM 导航并选择目标阶段，PPO 作为计划中的策略探索任务层选择。脊髓利用三图表征阶段相关的可行运动，输出协调关节轨迹和转换状态。小脑协调形变与机身平移、朝向、舵角和轮速。关节响应与闭合状态回脊髓，净空、支撑和跟踪误差回小脑，执行结果回大脑。
+大脑用 FSM 导航并选择目标阶段，PPO 作为计划中的策略探索任务层选择。脊髓利用三图表征阶段相关的可行运动，输出协调关节轨迹和转换状态。小脑协调形变与机身平移、朝向、舵角和轮速。实测关节响应回脊髓，净空、支撑和跟踪误差回小脑，任务结果回大脑。闭链残差默认由安全/评测记录保存，除非真实传感器明确提供给控制器。
 
 ### 插图与版式
 
-三层控制闭环框图，**视觉重心放在“三层分工 + 双向接口 + 三路反馈闭合”**（脊髓模块内只放紧凑的 `G_mode / G_state / G_phase` 三图徽章，把三图细节留到第 6 页展开，避免信息过载；注：仓库旧图 `outputs/three_layer_three_graph_20261114/three_layer_three_graph_framework.pptx` 术语与版面偏满，建议按下方提示词重生成与本稿术语完全一致的简洁新版）。PPO 用虚线框标为 *Planned option*。
+三层控制闭环框图，**视觉重心放在“三层分工 + 双向接口 + 三路反馈闭合”**（脊髓模块内只放紧凑的 `G_struct / G_transition / G_local(s)` 三图徽章，把三图细节留到第 6 页展开，避免信息过载；注：仓库旧图 `outputs/three_layer_three_graph_20261114/three_layer_three_graph_framework.pptx` 术语与版面偏满，建议按下方提示词重生成与本稿术语完全一致的简洁新版）。PPO 用虚线框标为 *Planned option*。
 
 #### 可编辑 PPT 插图生成提示词（第 5 页）
 
@@ -296,7 +288,7 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
 2. 中层（左右并列两张协同卡片，总宽 8.2 in，中间留双向协作箭头）：
    - 左卡 — Spinal Layer（浅紫底 `#F5F3FF`，紫边框，宽 4.0 in）：
      * 标题："Spinal Layer · Morphing & Three Graphs"
-     * 内部 3 个紧凑徽章：`G_mode`、`G_state`、`G_phase`
+     * 内部 3 个紧凑徽章：`G_struct`、`G_transition`、`G_local(s)`
      * 下方短句："Check reachability · generate coordinated 8-joint path"
    - 右卡 — Cerebellum（浅琥珀底 `#FFFBEB`，琥珀边框，宽 4.0 in）：
      * 标题："Cerebellum · Locomotion & Swerve Coordination"
@@ -313,7 +305,8 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
   * Spinal → Plant："Coordinated 8-joint command"
   * Cerebellum → Plant："4× steering & wheel speed command"
 - 右侧上行反馈主干（绿色实线/虚线 `#059669`，分三路接入）：
-  * Plant → Spinal："8-axis joint response & closure residual"
+  * Plant → Spinal："8-axis measured joint response"
+  * Safety monitor → Evaluation log: "closure residual / contacts (not learner input)"
   * Plant → Cerebellum："Clearance, 4-wheel support & tracking error"
   * Spinal & Cerebellum → Brain："Reached / Pause / Failure → Replan"
 
@@ -324,111 +317,56 @@ Uses unified MPC to coordinate active swerve steering and footprint morphing (na
 
 大脑负责任务目标和导航，FSM 请求目标阶段，PPO 是后续探索任务层选择的方向。脊髓根据当前反馈给出是否可达以及可执行的协调变形轨迹。小脑把机身形态变化与世界坐标中的移动、朝向、舵角和轮速协调起来。执行中的关节和闭合反馈更新脊髓状态；净空、支撑和跟踪情况交给小脑；到达、暂停或失败的结果回到大脑，供 FSM 继续或重新规划。
 
-## 6. 脊髓三图：从物理连接到可执行阶段 · 1:25
+## 6. 脊髓三图：硬件关系已知，运动规律靠探索 · 1:25
 
 ### English slide text
 
-**Three graphs represent physical structure, local motion and stage transitions**
+**One graph is fixed from XML; two are learned and then reused**
 
-| Graph | Main question | Information returned to the controller |
+| Graph | Source and role | Information returned to the controller |
 |---|---|---|
-| **G_mode · Effective topology** | Which blocks behave as one group in this mode? | Candidate rigid groups and the range where they remain valid |
-| **G_state · Stage-local constraints** | Which joint motions are feasible at this state? | Local motion directions, coupling evidence and confidence |
-| **G_phase · Transition graph** | Which verified action reaches another stage? | Directed action, entry condition, exit test and failure evidence |
+| **G_struct · Physical structure** | Fixed XML hardware context | Blocks, joints, actuators, sensors and loop-closure links; never treated as a learned motion graph |
+| **G_local(s) · Motion within a stage** | Learned from repeated feedback | Tested single- and multi-joint relations, valid range, confidence and evidence |
+| **G_transition · Discovered stages** | Learned from local evidence and reset tests | Behavior modes, directed actions, observable conditions, outcomes and replay status |
 
 ### 中文对照
 
-G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_state 表示当前姿态下可行的关节运动方向、耦合证据和置信度。G_phase 表示经过验证的阶段动作、进入条件、退出检测和失败证据。
+`G_struct` 只从 XML 读取物理连接，不提前写入运动规律，也不需要被“训练”。脊髓先用试探反馈建立 `G_local(s)`，再把反复出现且可区分的运动模式组织进 `G_transition`。XML 中的父子树用于坐标计算，闭环连接仍作为物理图上的一条边。候选联动和转换边要记录证据，冻结图后在新的复位试次中重测成功才可交给上层执行。一个完整实验活动可以得到三图接口，但单个 episode 不能证明三图已经可复用。
 
 ### 插图与版式
 
-页面上半部分放简洁三行表格（或将表格压缩为每图下方的信息条），主视觉为**三幅横向并列图**，共享同一套 8-block 闭链环基底（注意不要复用旧图 `outputs/three_graph_framework_20261105/three_graph_framework.pptx` 中的四电机 `G_phys/G_motion^(s)` 命名，统一改为本稿 8-block 的 `G_mode / G_state / G_phase`）：
-- **G_mode**：8-block 物理相邻边作浅灰实线，闭合边作标记，候选刚性功能组作彩色虚线包络。
-- **G_state**：8 个电机/关节节点、局部响应边、多关节约束因子节点及置信度标注。
-- **G_phase**：阶段节点与带有 *Guard / Action / Exit test* 的有向边；候选边用虚线，经复测验证后才用实线。
-
-#### 可编辑 PPT 插图生成提示词（第 6 页）
-
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 6 页（Three-Graph Spinal Representation: G_mode, G_state, G_phase）的原生可编辑 PPTX 与 SVG 矢量插图，尺寸 12.1 × 4.6 in（留出上方或下方空间给简表），图内全部文字使用英文。
-
-【布局结构：三张等宽并列图卡（每张宽 3.83 in，高 3.9 in，间距 0.3 in）+ 底部共享数据源与图例条（高 0.55 in）】
-1. Card 1 — G_mode · Effective Topology（蓝标题 `#1D4ED8`）：
-   - 副标题："Which blocks behave as one group?"
-   - 图示：规则八边形闭链（8 个小圆角块 B1–B8，浅灰实线代表已知 CAD 物理相邻，B8–B1 标注 "Loop weld"）；用 2–3 个半透明蓝色虚线圆角包络圈出候选功能组（标注 "Candidate rigid group"），另留一处标注 "Undecided edge (insufficient evidence)"。
-   - 底部返回信息条："Returns: candidate groups & valid pose range"
-
-2. Card 2 — G_state · Stage-Local Constraints（紫标题 `#7C3AED`）：
-   - 副标题："Which joint motions are feasible here?"
-   - 图示：上下两排节点——上排局部指令/电机节点 (u_1..u_8 精简示意 4–6 个代表节点 + "...")，下排关节响应节点 (j_1..j_8)，中间连接紫色耦合因子圆角小菱形 `f_1, f_2`；强稳定耦合画紫色实线标 "high conf."，弱/待确认边画灰虚线标 "candidate / low conf."。
-   - 底部返回信息条："Returns: local directions, coupling evidence & confidence"
-
-3. Card 3 — G_phase · Transition Graph（琥珀标题 `#D97706`）：
-   - 副标题："Which verified action reaches another stage?"
-   - 图示：3 个阶段圆角节点 `Stage S0`、`Stage S1`、`Stage S2`：
-     * S0 → S1 画绿色/琥珀**实线**有向弧，贴三段小标签："Guard | Verified Action | Exit test"；
-     * S1 → S2 画灰色**虚线**有向弧，标 "Candidate edge (unverified)"；
-     * 反向画一条带小叉标记的红色/灰虚线短弧，标 "Failure evidence (not symmetric)"。
-   - 底部返回信息条："Returns: directed action, guard, exit test & failure log"
-
-4. 底部共享底座条（浅灰底）：
-   - 左："Shared physical prior: CAD 8-block closed loop + 8-axis feedback"
-   - 右图例："Gray solid = given physical link   |   Dashed = candidate (unverified)   |   Colored solid = retest-verified"
-
-【质量约束】确保三张卡片的 8-block 编号与术语一致，虚实线区分一目了然，全部对象原生可编辑。
-```
+主图画三个独立但互相关联的对象：XML 闭环硬件图、由行为模式节点组成的有向转换图、某个模式对应的局部关节响应图。用虚线表示候选关系，用实线表示复测验证关系。图 2 的单独绘图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。不要画成三个神经网络层，也不要用姿态进度变量给阶段命名。
 
 ### 中文讲稿
 
-这三张图不是三种神经网络，也不是把同一结构画三遍。模型提供原始机械连接。G_mode 再描述当前运动模式下哪些 block 的相对位姿保持不变，可以作为一个功能组。G_state 记录这一阶段附近，哪些关节方向可动、各轴如何响应以及证据有多稳定。G_phase 把经过验证的动作连成阶段图，告诉上层从当前阶段怎样进入下一阶段。它们给 FSM 和小脑提供各自能使用的信息。
+第一张图只描述硬件怎么连接。机器人自己试探后，脊髓逐步学到不同运动状态下电机和关节的响应关系，并把反复出现的状态和可执行转换连接起来。XML 的父节点只是文件组织形式，在闭环机器人里不能把它当成唯一的机械父子关系。
 
-## 7. 脊髓如何从反馈建立和更新图 · 1:15
+## 7. Exp A：从零位开始反复探索和更新三图 · 1:15
 
 ### English slide text
 
-**Candidate couplings become reusable actions only after validation**
+**The learner discovers motion modes from commands and feedback**
 
-1. Apply a bounded probe in the current state.
-2. Observe all eight joint angles and velocities.
-3. Estimate local response and closure residual.
-4. Retest after retreating or resetting.
-5. Store the relation with its valid range and evidence.
+1. Reset to measured joint zero and check drift.
+2. Apply safe positive/negative and combined joint probes.
+3. Read permitted feedback and update `G_local(s)` evidence.
+4. Detect repeatable response changes and propose `G_transition` candidates.
+5. Reset and retest candidates, then freeze the graphs.
+6. Replay frozen actions on independent reset episodes.
 
-*The identification algorithm is an open design choice.*
+*XML connectivity and permitted feedback are the learner’s only information sources.*
 
 ### 中文对照
 
-在当前状态施加有界试探，观察八轴角度和速度，估计局部响应与闭合残差。退回或复位后重测，只有通过复测的关系才连同适用范围和证据存入图中。具体辨识算法仍待比较。
+每轮都从八个驱动关节的实测零位开始。探索器只读 XML 硬件连接、事先声明的传感器反馈和自己发出的动作。先做小幅正反向单轴试探，再逐步加入多轴组合，先更新 `G_local(s)` 的响应证据。只有当局部响应模式和可执行动作在复位后仍可区分，才提出 `G_transition` 候选。候选图冻结后，使用新的独立 episode 做重放，不能把复测数据继续用于这次冻结图的更新。闭链误差等隐藏仿真量只供安全停止和事后评分，不进入学习器。
 
 ### 插图与版式
 
-画六步闭环流程 *1. Bounded Probe → 2. Observe (q, q̇) → 3. Estimate Response & Closure Residual → 4. Retreat / Reset & Retest → 5. Update Graph (Candidate → Verified) → 6. Execute / Replan*（注意不要使用旧中文四步图 `artifacts/figures/active_constraint_learning_loop_2x1.svg`，按下方提示词生成全英文六步矢量闭环）。主反馈（8 轴角度、速度、闭合残差）用实线，电流/力矩作为可选负载辅助信号用灰色虚线支路标出；候选态与已验证态用虚/实线型严格区分。
-
-#### 可编辑 PPT 插图生成提示词（第 7 页）
-
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 7 页（Feedback-Driven Graph Discovery & Validation Loop）的原生可编辑 PPTX 与 SVG 矢量流程图，尺寸 12.1 × 4.8 in，图内全部文字使用英文。
-
-【布局结构：两行三列 U 形闭环流（上排 1→2→3 从左到右，下排 6←5←4 从右到左，右侧 3→4 向下，左侧 6→1 反馈闭环向上）】
-6 个圆角步骤卡片（每张宽 3.45 in，高 1.45 in，带左上角编号圆标）：
-- Step 1（蓝）："1. Bounded Probe" — "Apply small, torque- & rate-limited joint command in current state"
-- Step 2（蓝）："2. Observe 8-Axis Feedback" — "Primary (solid): 8 joint angles q & velocities q̇" + 右下角灰色虚线小附标 "Optional load aid: motor current / torque"
-- Step 3（紫）："3. Estimate Local Model" — "Fit local response & check loop-closure residual (algorithm kept open)"
-- Step 4（琥珀，高亮门控框）："4. Retreat / Reset & Retest" — "Return to source state and repeat probe; reject non-repeatable response"
-  * 从 Step 4 引出一条向下的灰虚线分支标 "Failed retest → keep candidate / log failure"
-- Step 5（绿）："5. Update Three Graphs" — "Promote candidate (dashed) → verified (solid) with valid range & evidence"
-- Step 6（蓝/绿）："6. Execute or Replan" — "Serve verified path to Cerebellum & FSM; trigger re-probe on anomaly"
-
-【视觉与语义重点】
-- Step 3 下方放一条极简灰底提示胶囊："Open algorithmic choice: linear response / sparse graph / future learned models"
-- 右下角小图例：Blue/Purple solid = primary flow；Green solid = verified update；Gray dashed = optional signal / unverified path。
-
-【质量约束】箭头折线拐角整齐不压文字，6 张卡片严格网格对齐，全部形状与文本原生可编辑。
-```
+画独立的循环插图：*Reset at measured zero → Safe probe → Observe permitted feedback → Update G_local / G_transition → Choose next uncertain action → Reset and retest*。在循环外单独画安全监控和事后评价框，避免隐藏仿真数据连到学习器。候选关系用虚线，已验证关系用实线。单独插图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。
 
 ### 中文讲稿
 
-脊髓的算法目前不预先承诺是强化学习还是某一种图网络。第一步是用幅度受限的试探获取真实输入与八轴输出的关系，并用闭合误差和复测来检查关系。随后才能比较简单响应矩阵、按状态区分的局部模型和图结构模型。图的作用是把部件、关节、阶段和证据组织起来，并为上层提供可查询的信息；图本身不能替代识别与验证算法。
+Exp A 不再从预选工作点开始拟合。每个试次都回到同一个实测零位，探索器只知道机械连接和允许读取的反馈。它先试探各个电机，再尝试组合动作，观察反馈规律是否稳定。随后它根据不确定性选择新的试探方向。只有在新复位试次中能够重复执行并通过完成检查的关系，才会升为已验证。每轮的图和原始数据都会保留，用于分析它如何逐步改进。
 
 ## 8. 端到端闭环：从目标阶段到可验证的执行结果 · 1:05
 
@@ -460,10 +398,10 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
    - Col 1（Badge: "Brain", 蓝）：标题 "1. Request" — "Select target stage & route goal"
    - Col 2（Badge: "Spinal", 紫）：标题 "2. Graph Query" — "Check reachability; return verified joint path"
    - Col 3（Badge: "Cerebellum", 琥珀）：标题 "3. Coordinated Cmd" — "Sync morph progress with twist, steer & wheel speed"
-   - Col 4（Badge: "Robot Feedback", 绿）：标题 "4. Observe" — "Joint q/q̇, closure residual, support & tracking"
+   - Col 4（Badge: "Robot Feedback", 绿）：标题 "4. Observe" — "Measured joint q/q̇ and declared sensors"
    - Col 5（Badge: "Brain / Graphs", 深蓝）：标题 "5. Decision" — 3 枚极简状态标签："Reached (green)"、"Pause (amber)"、"Replan (gray/red)"
    - 时序带底部画两条折返反馈线（绿色虚线/实线）：
-     * 从 Col 4/5 折返到 Col 2："Update graph evidence"
+     * 从 Col 4 折返到 Col 2："Update from permitted feedback"
      * 从 Col 5 折返到 Col 1："Continue or replan stage"
 
 2. 下方三态形态示意区（3 个圆角虚线贴图框 + 中间 2 个过程箭头，总宽 12.1 in）：
@@ -480,59 +418,29 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 完整闭环可以用一次阶段请求说明。大脑提出目标形态和路线要求，脊髓查询图里是否有适用的阶段动作，返回可达性和关节轨迹。小脑安排机器人如何一边完成形态变化，一边控制机身运动和舵轮。执行过程中，关节是否按预期响应、闭链误差是否受控、轮组是否保持支撑以及路径是否跟踪到位，都会反馈回来。系统据此确认到达、暂停执行、更新图上的证据或让大脑重新规划。
 
-## 9. 如何验证三层图脊髓的作用 · 1:10
+## 9. Exp A 如何验证三图结构 · 1:10
 
 ### English slide text
 
-**Test prediction, transition validation and closed-loop task execution**
+**Build the graphs, freeze them, and test reuse**
 
-- **Stage-local motion:** compare independent-joint, dense-response and graph-structured models on held-out joint commands.
-- **Transition conditions:** test alternative group-progress conditions with the same probe, then retreat and repeat.
-- **Closed-loop control:** compare a reference-path controller with a graph-informed stage request and coordinated swerve control.
+- **Discovery:** keep `G_struct` fixed from XML; learn `G_local(s)` and candidate `G_transition` from permitted feedback across repeated reset episodes.
+- **Freeze and replay:** stop graph updates, then test unseen joint combinations and learned transitions on independent reset episodes.
+- **Fair controls:** compare random safe probing, flat trial memory, a global response model, and the three-graph method under equal budgets.
 
-**Metrics:** joint-angle error · closure residual · probes to reliable prediction · false transition rate · task completion · path and shape error · support/contact status
+**Metrics:** held-out joint-response error · repeatability · false transition rate · probes to discovery · closure and torque safety
 
 ### 中文对照
 
-验证三个层面：在留出关节指令上比较独立关节、稠密响应和图结构模型；用相同试探测试不同关节组进度条件，并退回复测；再比较参考路径控制与图信息驱动的阶段请求及舵轮协调。指标包括角度误差、闭合残差、达到可靠预测所需试探数、错误转换率、任务完成情况、路径与形态误差、支撑与接触状态。
+主问题是：机器人能否从零位开始，只凭 XML 连接关系和允许的反馈，先建立阶段内运动关系，再建立可重复的转换边，并在图冻结后用新的复位试次重放这些动作。这里的“跑一次实验”指一整个多轮实验活动，不是一次连续动作。`G_struct` 只是固定的 XML 硬件图，真正需要验证的是 `G_local(s)` 和 `G_transition` 是否能被发现、冻结和复用。对照方法使用同一模型、复位、观测、控制限幅和动作预算。探索期不提供阶段标签、目标姿态库或仿真器内部约束量。
 
 ### 插图与版式
 
-画**三行“问题—对照协议—核心指标”的实验验证矩阵卡片**，顶部醒目标注 *Planned validation — identical model version, initial state, probe budget & chassis parameters*，每行左侧配小型流程图标（第 2 行嵌入 2×2 条件对照格 *Both far / Only A near / Only B near / Both near*，并注明 *Actual grouping determined by feedback*）。**严禁画虚构曲线、柱形图或预测性数值。**
-
-#### 可编辑 PPT 插图生成提示词（第 9 页）
-
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 9 页（Planned Validation Matrix）的原生可编辑 PPTX 与 SVG 矢量图，尺寸 12.1 × 5.2 in，图内全部文字使用英文，严禁出现任何柱状图、折线图或虚构实验数值。
-
-【布局结构：顶部统一公平性横幅（高 0.45 in）+ 三行水平实验卡片（每行高 1.38 in，间距 0.18 in）】
-- 顶部横幅（浅琥珀底 `#FFFBEB`，琥珀边框）：
-  "Planned Validation Protocol · Fair controls under identical model version, initial state, probe budget & swerve parameters"
-
-- 每行卡片横向分 3 列：Col 1（Research Question，宽 3.1 in）| Col 2（Controlled Comparison，宽 5.3 in）| Col 3（Key Metrics，宽 3.3 in）：
-  * Row 1（蓝左边条，Tag: "Exp A · G_state"）：
-    - Question: "Does graph structure improve held-out motion prediction?"
-    - Comparison（3 枚并列小盒 + 同数据标记）: "Same probe budget & held-out joint cmds → [Independent] vs. [Dense linear] vs. [Sparse validated graph]"
-    - Metrics: "Per-joint & total angle error · Closure residual · Probes vs. error · Trial repeatability"
-  * Row 2（紫左边条，Tag: "Exp B–C · G_mode & G_phase"）：
-    - Question: "Do group-progress conditions truly govern transitions?"
-    - Comparison（内置微型 2×2 四格示意 + 回退箭头）: "2×2 probe grid: [Both far | Only A near | Only B near | Both near] + Retreat & Retest (groups verified by feedback)"
-    - Metrics: "Transition repeatability · False unlock rate · Group break rate · Closure & torque safety"
-  * Row 3（绿左边条，Tag: "Exp D · Full Closed Loop"）：
-    - Question: "Do spinal graphs improve task execution & swerve coordination?"
-    - Comparison（3 条平行路径小条）: "Same task & chassis → [Ref φ replay] vs. [Global model] vs. [Verified three-graph query + FSM + swerve]"
-    - Metrics: "Task completion · Path & shape error · Clearance & 4-wheel support · Aborts & time"
-
-【质量约束】三行卡片垂直对齐清晰，2×2 小格内文字简洁不拥挤，全部对象可编辑。
-```
+画三行简洁实验关系图：第一行呈现零位到多轮自主探索；第二行呈现冻结图后的未见多轴动作和转换复测；第三行并列展示公平对照方法。不要画预测性柱状图或虚构数值。绘图素材与独立插图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。
 
 ### 中文讲稿
 
-实验要回答图结构是否真正帮助控制，而不只是把数据画成图。首先检查它能否从相同数量的试探中更准确地预测新联合动作。然后用干预和回退复测区分哪些条件真的改变可行运动。最后把得到的阶段信息接入大脑和小脑，和仅沿参考路径执行的方式比较任务完成与安全指标。所有对照都在相同模型版本、初态、动作预算和底盘条件下进行。
-
----
-
-# 五、模型选型对比与实测进展
+判断实验成功要看学到的部分能不能重用，不是只看最终有没有三张图。`G_struct` 只需核对 XML 解析正确；`G_local(s)` 要通过未见过的联合动作测试；`G_transition` 要在图冻结后的新复位试次中重做，并在失败时停止或回退。还要用相同交互预算与随机探索、平坦记录和全局响应模型比较。这样才能判断三图表示是否真的提供了帮助。
 
 ## 10. 完整 CAD 模型导出与电机选型对比（预计 vs 实测） · 1:25
 
@@ -544,7 +452,7 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 |---|---|---|---|
 | **Closed-chain & support** | Inferred 8th hinge (~5.18 mm gap, ~14.6° offset); rigid caster proxy (`R=25.5 mm`) | Native 8-joint CAD + exact 6-DoF `weld` (`<1e-10`); **8 explicit 6 mm spring casters** (`R=28 mm`) | Eliminates artificial closure fighting; realistic tire/caster load sharing |
 | **Total mass** | `6.27–6.42 kg` (assumed +0.15 kg closure) | **`9.26 kg`** full CAD mass (**+44%**) | Higher inertial & rolling load on drive modules |
-| **8 body joints (`φ=0→3`, 6 s)** | RMS `0.39–1.40 N·m`; peak **`8.31–9.02 N·m`** *(1.5× spec ≥ 2.5 / 14 N·m)* | CAD sweep peak **`4.28 N·m`** (RMS `0.61–1.38`); w/ ramps & wheel coord: **`3.56 N·m`** (RMS `0.38–1.18`) | **Peak dropped ~50–60%**; zero saturation under `11 N·m` cap *(flat ground, no payload)* |
+| **8 body joints (6-s morphing sweep)** | RMS `0.39–1.40 N·m`; peak **`8.31–9.02 N·m`** *(1.5× spec ≥ 2.5 / 14 N·m)* | CAD sweep peak **`4.28 N·m`** (RMS `0.61–1.38`); w/ ramps & wheel coord: **`3.56 N·m`** (RMS `0.38–1.18`) | **Peak dropped ~50–60%**; zero saturation under `11 N·m` cap *(flat ground, no payload)* |
 | **4 swerve modules (hub / steer)** | `6.27 kg` up to `0.4 m/s`, 15° slope: hub `0.21–0.43 N·m`, steer `0.71–0.98 N·m` | `±0.45 N·m` hub saturates above **`0.15–0.20 m/s`** (steady flat max **`~0.23 m/s`**, 86 rpm); steer RMS `0.18–0.30 N·m` | **Key gap:** `0.45 N·m` hub caps flat speed below `0.4 m/s`; ok for low-speed tests, upgrade needed for fast/slope driving |
 
 *Flat-ground unloaded comparison; static multi-pose holds, slopes, and real friction/gearbox losses remain to be calibrated.*
@@ -572,7 +480,7 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 1. 左侧精简对比表（4 行 × 4 列，深蓝表头、浅灰斑马纹、原生可编辑单元格）：
    - 列标题："Metric" | "Early Surrogate (Oct)" | "Full CAD Model (Nov)" | "Impact"
    - Row 1: "Mass & Loop" | "6.42 kg · inferred 8th hinge (~14.6° offset)" | "9.26 kg (+44%) · exact CAD weld + 8 spring casters" | "Higher rolling load; no closure fight"
-   - Row 2: "Body Torque (φ=0→3, 6s)" | "Peak 8.31–9.02 N·m · RMS 0.39–1.40" | "Peak 3.56–4.28 N·m · RMS 0.38–1.38" | "Peak -50–60%; 0 s at 11 N·m cap"
+   - Row 2: "Body Torque (6-s morphing sweep)" | "Peak 8.31–9.02 N·m · RMS 0.39–1.40" | "Peak 3.56–4.28 N·m · RMS 0.38–1.38" | "Peak -50–60%; 0 s at 11 N·m cap"
    - Row 3: "Hub Drive (4×)" | "6.27 kg est.: 0.21–0.43 N·m (to 0.4 m/s)" | "0.45 N·m cap saturates >0.15–0.20 m/s" | "Flat steady max ~0.23 m/s (86 rpm)"
    - Row 4: "Steering (4×)" | "Peak 0.71–0.98 N·m" | "RMS 0.18–0.30 N·m (<0.84 N·m smooth fold)" | "3.0 N·m cap sufficient w/ smooth slew"
    - 表底一行小字注脚："Flat ground, unloaded; multi-pose holds, slopes & real gearbox losses pending calibration."
@@ -599,20 +507,20 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 ### English slide text
 
-**Grounded chassis, 8-caster suspension, moving-morph, and local branch feasibility are verified**
+**Grounded chassis and basic motion are verified; autonomous graph discovery is next**
 
 - **Explicit 8-caster spring suspension (`k=2400 N/m`, 6 mm):** raises coast-morph 4-wheel support from **`50.8% → 90.3%`** (`82.1 → 23.6 mm` peak error) and halves tire penetration (`3.24 → 1.71 mm`) with **0 N** housing scrape.
 - **Planar drive & 4 mm bump (`TarsGroundedEnv`):** 6-direction travel (`x± / y± / yaw±`) achieves **`96.5–98.9%`** 4-wheel support and **`≤ 0.28°`** yaw drift; single-caster 4 mm bump recovers **`100%`** support.
-- **Moving-while-morphing & steering decoupling (`RP¹` scrub-gradient + block-yaw FF):** four-frame decoupling (`{W}/{B}/{R₀}/{Mᵢ}`) + urgency-gated projective-circle (`RP¹`) steering eliminates `φ≈2` 180° flips (`lateral` max `|q|` `530° → 102.5°`, all 4 wheels return to `0°`; `moving` `φ∈[1.9,2.2]` swing `200.6° → 127.6°`), reaching **`100%`** (`lateral`), **`99.9%`** (`still`), **`97.2–98.6%`** (`moving/reverse/half`) 4-wheel support, COM error **`11.5–15.2 mm`**, weld gap **`< 0.09 mm`**.
-- **Spinal-readiness checks:** closure rank dips `6 → 5` near `φ ≈ 1.434` with **14/14** signed finite branches passing stock limits (`peak < 3.95 N·m`); encoder-based 21-group envelope runs in **`0.80 ms`** (p95) and flags a `-21.3 mm` mid-corridor overlap fixed to `+7.2 mm` by a `28.5 mm` lateral shift.
+- **Moving-while-morphing & steering decoupling (`RP¹` scrub-gradient + block-yaw FF):** four-frame decoupling (`{W}/{B}/{R₀}/{Mᵢ}`) + urgency-gated projective-circle (`RP¹`) steering eliminates a 180° steering flip during morphing (`lateral` max `|q|` `530° → 102.5°`, all 4 wheels return to `0°`; `moving` transition-region swing `200.6° → 127.6°`), reaching **`100%`** (`lateral`), **`99.9%`** (`still`), **`97.2–98.6%`** (`moving/reverse/half`) 4-wheel support, COM error **`11.5–15.2 mm`**, weld gap **`< 0.09 mm`**.
+- **Offline model reference only:** geometry/constraint diagnostics and swept-envelope calculations can be used after exploration to score results; they are hidden from the learner and cannot guide its action choices.
 
 ### 中文对照
 
 近两日在最新 `tars_mjcf_grounded` 模型上完成了基础移动框架与底层物理前提的系统验证并已冻结定版：
 1. **8 万向球显式弹簧悬挂**：相比旧刚性接触代理，滑行变形四轮着地率由 `50.8%` 提升至 `90.3%`（峰值偏移 `82.1 → 23.6 mm`），轮胎最大压入减半（`3.24 → 1.71 mm`），全程无轮罩/机身刮地；
 2. **六向平面行驶与 4 mm 越障**：`x± / y± / yaw±` 四轮承载率 `96.5%–98.9%`、偏航漂移 `≤ 0.28°`，单侧 4 mm 凸起越障后恢复 `100%` 四轮承载；
-3. **边走边变形与四坐标系舵轮解耦（已定版）**：建立 `{W}/{B}/{R₀}/{Mᵢ}` 四坐标系与无根块脊髓变形接口 `spinal_morph_kinematics()`，并采用紧迫度门控射影圆（$\mathbb{R}P^1$）侧滑能量梯度 + 自适应安装块偏航前馈，彻底消除 `φ≈2` 附近 180° 急转/回弹（`lateral` 单轮最大转角从 `530°` 压至 **`102.5°`** 且四轮归零、`100%` 接地、倾角 `6.0°`；`moving` `φ∈[1.9,2.2]` 摆幅从 `200.6°` 降至 `127.6°`；5 种主动工况四轮承载率 **`97.2%–100%`**，闭链 `weld` 间隙 `< 0.09 mm`）；
-4. **脊髓前置验证**：在 `φ≈1.434` 附近测得闭链雅可比秩降（6→5）且 **14/14** 个带符号有限位移分支全部在原厂力矩上限内通过（`< 3.95 N·m`）；编码器包络计算 `p95 = 0.80 ms`，并在 0.88 m 虚拟窄道上验证了沿途包络净空对进场横移的价值。
+3. **边走边变形与四坐标系舵轮解耦（已定版）**：建立 `{W}/{B}/{R₀}/{Mᵢ}` 四坐标系与无根块脊髓变形接口 `spinal_morph_kinematics()`，并采用紧迫度门控射影圆（$\mathbb{R}P^1$）侧滑能量梯度 + 自适应安装块偏航前馈，彻底消除 变形过程中的 180° 急转/回弹（`lateral` 单轮最大转角从 `530°` 压至 **`102.5°`** 且四轮归零、`100%` 接地、倾角 `6.0°`；`moving` 变形区间内摆幅从 `200.6°` 降至 `127.6°`；5 种主动工况四轮承载率 **`97.2%–100%`**，闭链 `weld` 间隙 `< 0.09 mm`）；
+4. **离线评测参考**：闭链约束与形态包络的仿真内部量只用于安全审计和探索后的结果评分，不提供给新的自主探索器。沿途包络也可在后续导航实验中用于比较进场位置。
 
 ### 插图与版式
 
@@ -620,7 +528,7 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 - **左上（显式悬挂对照）**：贴入 `experiments/grounded_caster_suspension_20261124/suspension_closeup_demo.gif`（单舵轮双万向球 6 mm 弹簧压缩特写）或 `baseline_vs_suspension_comparison.svg`。
 - **右上（舵轮解耦与边走边变形）**：并排播放 `experiments/grounded_steering_decouple_20261124/lateral_steering_comparison.gif`（最直观：`±530°` → `±102.5°` 归零），配合无网格对比曲线 `steering_angles_before_after.svg`（或 `moving_steering_comparison.gif`、`steering_metrics_summary.svg`）。
 - **左下（六向驱动与 4 mm 越障）**：贴入 `experiments/grounded_caster_suspension_20261124/swerve_drive_and_bump.gif` 关键帧 + 实测指标角标。
-- **右下（局部多分支与沿途包络预检）**：贴入 `experiments/grounded_phi_local/tracking.png` 或 `experiments/grounded_support_navigation/tire_loads.png` + `14/14 branches passed` 与 `0.80 ms envelope` 徽章。
+- **右下（离线评测参考）**：贴入 `experiments/grounded_support_navigation/tire_loads.png`，并标注 *Post-hoc / safety evaluation only; hidden from Exp A learner*。
 
 #### 可编辑 PPT 插图生成提示词（第 11 页 · 2×2 实测证据画框）
 
@@ -634,15 +542,15 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 - Card 2 (右上，绿标 "Done"): 标题 "2. Moving-Morph & RP¹ Steering Decoupling"
   * 贴图框提示："Insert lateral_steering_comparison.gif / steering_angles_before_after.svg"
-  * 底部实测："Lat |q|max: 530° → 102.5° (0° return)  |  4-wheel: 100% (lat), 97.2–98.6% (mov/rev/half)  |  φ≈2 flip fixed"
+  * 底部实测："Lat |q|max: 530° → 102.5° (0° return)  |  4-wheel: 100% (lat), 97.2–98.6% (mov/rev/half)  |  morphing flip fixed"
 
 - Card 3 (左下，绿标 "Done"): 标题 "3. 6-Dir Planar Drive & 4 mm Bump"
   * 贴图框提示："Insert swerve_drive_and_bump.gif keyframe"
   * 底部实测："6-dir 4-wheel support: 96.5–98.9%  |  Yaw drift ≤ 0.28°  |  4 mm bump recovery: 100%"
 
-- Card 4 (右下，紫标 "Pre-Check"): 标题 "4. Local Branching & Encoder Envelope"
+- Card 4 (右下，灰标 "Evaluation Only"): 标题 "4. Offline Geometry & Safety Reference"
   * 贴图框提示："Insert grounded_phi_local / grounded_support_navigation figure"
-  * 底部实测："φ≈1.434 rank 6→5: 14/14 branches pass (<3.95 N·m)  |  21-group envelope: 0.80 ms (p95)"
+  * 底部说明："Post-hoc diagnostics only  |  Not available to the exploration learner"
 
 【质量约束】所有贴图区留白居中并带虚线框，方便一键替换为仓库已有 SVG/PNG/GIF；实测数字全部原生文本框可编辑。
 ```
@@ -653,112 +561,56 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 左上角是显式 8 万向球 6 毫米弹簧悬挂的特写与前后对照：相比旧刚性代理，滑行变形的四轮着地率从 50.8% 提到 90.3%，轮胎最大压入减半，全程零轮罩刮地。左下角是六向平面行驶和 4 毫米单侧越障测试，四轮承载率保持在 96.5% 到 98.9%，偏航漂移不到 0.3 度，越障后完全恢复四轮支撑。
 
-右上角是边变形边移动与四坐标系舵轮解耦的实测对比：我们在脊髓层抽出了与根块无关的内部变形运动学接口，在小脑层结合安装块偏航前馈和射影圆侧滑能量梯度，彻底消除了旧版舵轮甩到 ±530 度再急转回弹，以及 φ=2 附近的 180 度突转问题。可以看到横移边变形中四轮全程稳定在 ±102.5 度以内并对称归零，四轮接地率达到 100%，5 种主动移动变形工况接地率全部在 97.2% 到 100%，67 项单元测试全部通过。右下角还做了两项前置核查：在 φ≈1.434 附近确实存在局部降秩且 14 个带符号有限分支全部在限幅内通过；基于编码器的 21 刚体包络单次计算仅 0.8 毫秒。这套底座现在已经具备作为理想解析“上界参考”的能力，下一步即可在工作站用脊髓三图记忆逐步替代解析接口做对照验证。
+右上角是边变形边移动与四坐标系舵轮解耦的实测对比：我们在脊髓层抽出了与根块无关的内部变形运动学接口，在小脑层结合安装块偏航前馈和射影圆侧滑能量梯度，彻底消除了旧版舵轮甩到 ±530 度再急转回弹，以及变形中出现的 180 度突转问题。可以看到横移边变形中四轮全程稳定在 ±102.5 度以内并对称归零，四轮接地率达到 100%，5 种主动移动变形工况接地率全部在 97.2% 到 100%，67 项单元测试全部通过。右下角这项只代表仿真内部的事后评测能力，不会提供给新的探索器。当前底盘已满足开展自主探索的基础条件，接下来要通过全新的 Exp A 检验探索器能否仅凭 XML 连接和允许反馈建立脊髓三图。
 
-## 12. 工作站核心实验结果展位：脊髓三图与闭环对照（Exp A–C / D） · 1:35
-
-> **使用说明（演讲前替换）**：本页专门预留给你推送最新底盘代码、在 Linux 工作站拉取并跑完 **实验 A / B / C（及有余力时跑完实验 D）** 后的实测结果展示。跑完哪几项就替换对应面板的真实无网格图表与 `[TBD]` 数字；若汇报前仅完成部分实验（例如跑完 Exp 0 + A/B，Exp C/D 仍在进行），保留对应面板的 *In progress on Linux workstation* 标签并按下方降级口径口播即可，严禁填未跑出的假数。
+## 12. 已完成的预实验与新的 Exp A · 1:35
 
 ### English slide text
 
-**Workstation validation of the three-graph spinal layer (Exp A–C / D)**
+**Completed: basic model checks and local response prediction**
 
-- **Exp A (`G_state` local prediction):** held-out joint error across probe budgets — `independent` `[TBD°]` vs. `dense` `[TBD°]` vs. `sparse validated graph` `[TBD°]`; closure residual `< [TBD] mm`.
-- **Exp B (`G_mode` candidate groups):** multi-direction repeated inference reduces held-out group break rate from `[TBD%]` (single-dir) to `[TBD%]`; `[TBD]` edges kept `undecided`.
-- **Exp C (`G_phase` transition retest):** controlled probe across condition grid + retreat-and-retest achieves `[TBD%]` repeatability and `[TBD%]` false unlock rate *(or reports negative evidence if no repeatable transition emerges)*.
-- **Exp D (Closed-loop narrow corridor, if completed):** `ref-φ` vs. `global model` vs. `three-graph FSM + swerve` — success `[TBD]`, min clearance `[TBD] mm`, 4-wheel support `[TBD%]`.
+- **Exp 0:** the current closed-chain MuJoCo model passed the basic chassis and motion gates.
+- **Previous local-response pilot:** 1,676 probes compared several predictors around preselected configurations.
+- **What remains untested:** autonomous discovery of motion modes and transition actions from the zero configuration.
+
+**Next Exp A:** XML connectivity + permitted feedback → iterative exploration → three-graph snapshots → frozen replay on new episodes.
 
 ### 中文对照
 
-本页用于集中汇报即将于 Linux 工作站运行的三图核心对照实验结果（对应第 9 页验证设计）：左栏展示实验 A 的预算-留出误差曲线与三模型误差对比；中栏展示实验 B 候选功能组的留出破裂率对比与 `undecided` 边界；右栏展示实验 C 条件对照探测与回退复测复现率（及已验证 `G_phase` 边或如实负结果）；底部横条呈现实验 D 物理窄道闭环三方法对照汇总（若汇报前尚未完成则标注“待 A–C 锁定后执行”）。
+实验 0 已完成新模型和底盘基础运动验收。旧 Exp A 做了 1,676 次局部响应试探和模型预测对照，能作为“局部动作响应可学习”的先导结果。它从预选工作点开始，没有验证从零位自主发现阶段和转换条件。新的 Exp A 将从实测关节零位开始，只把 XML 硬件连接提供给探索器，其余运动关系和阶段都通过反馈学习。
 
 ### 插图与版式
 
-采用 **上方三列核心结果图卡（Exp A / Exp B / Exp C）+ 底部实验 D 闭环对照汇总条**。所有待嵌入曲线图均由 Linux 工作站按**无横纵背景网格线**规范自动生成后直接拖入占位框。
-
-#### 可编辑 PPT 插图生成提示词（第 12 页 · 实验结果展位模板）
-
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 12 页（Workstation Three-Graph Experiment Results Showcase Template）的原生可编辑 PPTX 与 SVG 矢量版式模板，尺寸 12.1 × 5.2 in，图内全部文字使用英文，严禁伪造任何数据曲线或假数字。
-
-【布局结构：上方三张等宽结果展位卡（每卡宽 3.83 in，高 3.85 in，间距 0.3 in）+ 底部 Exp D 状态/汇总横条（宽 12.1 in，高 1.05 in）】
-1. Col 1（蓝顶条，Tag: "Exp A · G_state"）：
-   - 标题："Held-Out Prediction vs. Budget"
-   - 图表占位框（高 2.25 in，浅灰虚线框）："Drop Exp A Budget–Error Plot Here (no gridlines)"
-   - 底部 3 行 `[TBD]` 指标槽："Independent: [TBD] deg" / "Dense linear: [TBD] deg" / "Validated graph: [TBD] deg · gap <[TBD] mm"
-
-2. Col 2（紫顶条，Tag: "Exp B · G_mode"）：
-   - 标题："Candidate Groups & Break Rate"
-   - 图表占位框（高 2.25 in，浅灰虚线框）："Drop Exp B Group Break-Rate Plot Here (no gridlines)"
-   - 底部 3 行 `[TBD]` 指标槽："Single-dir break rate: [TBD]%" / "Multi-dir break rate: [TBD]%" / "Undecided edges: [TBD] / 8"
-
-3. Col 3（琥珀顶条，Tag: "Exp C · G_phase"）：
-   - 标题："Condition Grid & Retreat Retest"
-   - 图表占位框（高 2.25 in，浅灰虚线框）："Drop Exp C Condition & Retest Plot Here (no gridlines)"
-   - 底部 3 行 `[TBD]` 指标槽："Repeatability: [TBD]% (N=[TBD] cycles)" / "False unlock rate: [TBD]%" / "Verified edges stored: [TBD]"
-
-4. 底部横条（绿边框浅绿底 `#ECFDF5`，左侧标签 "Exp D · Closed-Loop Corridor Benchmark"）：
-   - 左侧 3 枚并列指标槽："[Ref-φ Replay: TBD]" | "[Global Model: TBD]" | "[Three-Graph Closed Loop: TBD]"
-   - 右上角可切换小徽章（灰底虚线框，便于按实际进度保留或删除）："Status: Completed / Queued on Linux Workstation"
-
-【质量约束】所有 `[TBD]` 文本框独立可编辑，方便工作站跑完后 1 分钟内填数贴图，绝不预绘假折线。
-```
+- 已有结果图可从 `experiments/expA_gstate_deep_20261125_021500/` 复制 `expA_budget_convergence.png` 或 `expA_model_and_closedloop_eval.png`。图旁必须标注“preselected local-response pilot”，避免将它解释为自主图发现。
+- 下一步方案图单独绘制为“固定零位 → 安全试探 → 反馈更新三图 → 新动作探索 → 独立复测”的循环，并在学习器边界标出“XML connectivity + permitted feedback only”。绘图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。
+- 不要画没有实验数据支持的阶段节点数量、转换成功率或性能柱状图。
 
 ### 中文讲稿
 
-*（正常版——工作站已跑完实验 A–C 或 A–D 时使用）*  
-基础底盘锁版同步到工作站后，我们按第 9 页的对照方案跑了核心实验。左边是实验 A，在相同试探预算下，可以看到稀疏图响应相对独立模型和稠密模型在留出联合动作上的误差变化以及闭合残差情况；中间是实验 B，多方向重复扰动显著降低了候选功能组在留出动作上的破裂率，证据不足的连接如实保留为未决；右边是实验 C，在多条件对照和回退复测中，我们检验了受限方向响应是否可重复再现。底部给出了接入大脑 FSM 和小脑后的端到端窄道对照结果（若实验 D 尚未完成则改口播：“实验 D 的物理窄道闭环对照将在锁定 A–C 验证边后立即展开”）。
+到目前为止，我们完成了两层前置工作。第一，完整闭链模型和底盘基本移动已经通过实验 0 的验收。第二，旧 Exp A 做了局部关节响应预测，说明在给定工作点附近，反馈数据可以帮助预测新动作。但旧试验从预先选好的配置开始，所以还没有回答我们的核心问题。下一轮 Exp A 会让探索器从实测零位重新开始，只读 XML 连接关系和允许的传感器反馈，反复选择安全动作，自己建立阶段内运动图和阶段转换图，再在全新试次里检验学到的动作能否重放。
 
-*（降级备用版——若汇报前仅刚推送底盘、工作站实验正在跑）*  
-这一页预留给马上在 Linux 工作站拉取最新定版底盘后开展的三图对照实验：左边对应实验 A 的局部响应预算曲线，中间对应实验 B 的功能组留出破裂率，右边对应实验 C 的多条件回退复测，底部对应实验 D 的窄道完整闭环对照。所有脚本、公平预算协议和无网格出图规范已整理完毕，底盘悬挂与舵轮解耦算法已完成冻结定版，工作站拉取即可一键跑出这四组对照。
-
----
-
-# 六、下一步计划
-
-## 13. 下一步计划：分层验证与真机迁移 · 1:05
+## 13. 下一步计划：先验证自主发现，再接入导航 · 1:05
 
 ### English slide text
 
 **Build evidence in the order required by the control loop**
 
-1. **Freeze chassis & baseline** *(wrapping up)*  
-   Finish `φ=2` steering polish, push to Git, and lock canonical states & logs on the Linux workstation.
-2. **Complete spinal-graph benchmarks (Exp A–C)**  
-   Quantify local prediction, candidate rigid groups, and retreat-retested transition edges.
-3. **Connect Brain FSM & Cerebellum (Exp D)**  
-   Build the physical narrow-corridor benchmark on `tars_mjcf_grounded` and run the 3-way closed-loop comparison.
-4. **Hardware transfer preparation**  
-   Align CAN dual-encoder mapping, body geometry envelope, real caster suspension (`k, F₀, c`), and hub-motor sizing check.
+1. **Exp 0 · Complete** — freeze the current model, chassis controller, and measured zero reset.
+2. **New Exp A · Next** — iteratively discover and retest the spinal graphs from XML connectivity and permitted feedback only.
+3. **Brain–Spinal–Cerebellum integration · Later** — connect verified morphing paths to navigation, swerve coordination, and a physical corridor task.
+4. **Hardware transfer · Future** — align encoders, geometry, suspension, and motor limits with the real robot.
 
 ### 中文对照
 
-按控制闭环依赖顺序推进：先收尾基础移动并同步工作站冻结基线，随后完成脊髓三图 A–C 定量对照，再在 `tars_mjcf_grounded` 上搭建物理窄道场景完成大脑—脊髓—小脑三方法闭环对照（实验 D），最后对齐真机 CAN 双编码器、外轮廓、悬挂参数并复核轮毂电机选型。
+实验 0 已完成。下一步先用新的 Exp A 验证探索器能否从零位只凭 XML 连接关系和允许的反馈，逐轮学出并复测三张脊髓图。三图复测通过后，再接入大脑任务决策和小脑舵轮协调，最后做真机接口对齐。
 
 ### 插图与版式
 
-用四段递进横向路线图，**不标“第几天”或固定耗时**。前 3 步收在浅蓝底分组框 *Simulation Validation (MuJoCo)* 内，第 1 步高亮 *Wrapping Up*，第 2–3 步标 *Next on Workstation*；第 4 步单独放右侧虚线分组框 *Hardware Transfer (Future)*，视觉区隔仿真与硬件，避免暗示已部署。
-
-#### 可编辑 PPT 插图生成提示词（第 13 页）
-
-```text
-请遵循【可编辑 PPT 插图通用视觉规范】，生成第 13 页（Next Steps Roadmap）的原生可编辑 PPTX 与 SVG 矢量路线图，尺寸 12.1 × 4.6 in，图内全部文字使用英文，严禁出现具体日期、天数或周次。
-
-【布局结构：左右两大分区框（左：Simulation Validation 宽 8.9 in；右：Hardware Transfer 宽 2.9 in，中间留 0.3 in 虚线过渡箭头标 "Sim-to-Real Gate"）】
-1. 左侧大框（浅蓝淡底，顶栏 "Simulation Validation (Dependency Order)"），内含 3 张横向递进步骤卡（每张宽 2.65 in，高 3.1 in，箭头串联）：
-   - Card 1（蓝实线高亮，顶部徽章 "Wrapping Up"）："1. Freeze Chassis & Baseline" — "Finish φ=2 steering polish · Git sync to Linux · lock canonical states & logs (Exp 0)"
-   - Card 2（紫虚线框，徽章 "Next"）："2. Spinal Graph Benchmarks" — "Run fair Exp A–C: local prediction, G_mode break rate & G_phase retreat-retest"
-   - Card 3（绿虚线框，徽章 "Planned"）："3. Full Closed-Loop Eval" — "Physical narrow corridor on tars_mjcf_grounded · 3-way FSM + Spinal + Swerve test (Exp D)"
-
-2. 右侧独立虚线框（浅灰底，顶栏 "Hardware Transfer"），内含 1 张卡片：
-   - Card 4（深灰虚线框，徽章 "Future"）："4. Real-Robot Alignment" — "CAN dual-encoder mapping · geometry envelope · caster spring & hub-motor load check"
-
-【质量约束】4 张卡片横向中心对齐，仿真区与硬件区视觉界限清晰，字号 ≥ 11 pt，全部元素原生可编辑。
-```
+用四个独立步骤组成横向路线图。突出“Exp A · Next”，把端到端导航和真机迁移标为后续阶段。插图只画流程节点和箭头，不生成整页 PPT，也不放虚构指标。单独绘图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。
 
 ### 中文讲稿
 
-下一步按依赖顺序收尾：第一步完成 `φ=2` 转向摆幅最后微调后推送到 Git，在工作站拉取并冻结实验 0 基线；第二步跑完或补齐脊髓三图实验 A 到 C 的定量对照；第三步在最新模型上搭建物理窄道场景，跑通大脑 FSM、脊髓三图和小脑舵轮的三方法端到端对照；最后面向真机对齐 CAN 双编码器、包络、悬挂实测参数以及前面发现的轮毂力矩余量问题。
+底盘和模型基础验收已经完成。接下来不直接跳到窄道任务，而是先让机器人从零位自己探索并建立三张图，检查未见动作和转换能不能复测。这个阶段通过后，再把验证过的变形路径交给上层任务规划和小脑运动协调。最后才开展真机传感器、几何与动力学对齐。
 
 ## 14. 讨论与致谢 · 0:30
 
@@ -796,11 +648,10 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 | 编号 | 实验名称 | 对应架构层级 / 图 | 当前仿真前提就绪度 | 核心产出 |
 |---|---|---|---|---|
-| **实验 0** | 模型冻结、基础移动框架与标准初态验收 | 仿真底座 + 小脑底层 | **已定版就绪**：8 轴闭链、4 舵轮、8 万向球 6 mm 弹簧悬挂与 `RP¹` 舵轮解耦控制器已全部定版并通过 67 项单元测试；在工作站同步代码与私有 MJCF XML 后即可运行验收并导出标准初态快照与 8-block 映射 | 冻结版模型哈希、基础移动与边走边变形回归报告、`φ=0/1.5/3` 初态快照、8-block 刚体映射表 |
-| **实验 A** | 八轴局部响应辨识与留出预测 | 脊髓 `G_state` | **可直接展开**（需先适配 `tars_mjcf_grounded` 试探脚本，注意 `q=0` 对应 `φ=1.5` 且默认 `kp=50` 位置伺服） | 局部响应模型对照结果（对角 / 稠密 / 稀疏图）、留出误差与预算曲线、原始 trial 数据 |
-| **实验 B** | 有效拓扑与候选功能组辨识 | 脊髓 `G_mode` | **可直接展开**（需先建立 CAD 刚体名到 8 个逻辑 block 的映射） | 静置底噪阈值、候选功能组与留出破裂率报告、`undecided` 关系清单 |
-| **实验 C** | 阶段转换条件与回退复测 | 脊髓 `G_phase` | **可直接展开**（当前模型已在 `φ≈1.434` 附近观察到局部降秩与多分支有限位移，待用反馈与复测独立验证） | 可区分条件对照结果、回退复测复现率、带证据的 `G_phase` 候选/已验证边 |
-| **实验 D** | 图查询接入大脑 FSM 与小脑协调的端到端闭环对照 | 大脑 + 脊髓 + 小脑完整闭环 | **存在工程缺口（需先搭桥）**：现有 FSM/MPC/障碍场景仍绑定旧 7 关节模型，`tars_mjcf_grounded` 目前仅有空旷平地与离线窄道投影，需先建物理窄道场景与统一闭环接口 | 物理窄道/任务基准场景、三方法公平对照报告（参考路径 / 全局模型 / 三图查询） |
+| **实验 0** | 模型与底盘基础验收 | 仿真底座 + 小脑底层 | **已完成**：现行闭链模型、控制器、零位静置和基础移动已记录 | `experiments/exp0_baseline_20261125_015900/` |
+| **旧 Exp A** | 预选工作点的局部响应预测 | 局部辨识先导 | **已完成但范围有限**：没有从零位自主发现阶段或三图 | `experiments/expA_gstate_deep_20261125_021500/` |
+| **新 Exp A** | 只凭 XML 连接和允许反馈，从零位多轮发现三图 | 脊髓探索与执行 | **下一步**：先做接口/信息泄漏审计，再按安全门禁逐轮探索和复测 | 三图快照、原始 episode、预算学习曲线、冻结边新试次重放结果 |
+| **Exp D** | 三图接入大脑 FSM 与小脑舵轮协调 | 完整闭环 | **后续**：新 Exp A 得到可复测动作后，再补齐物理任务场景和统一接口 | 物理窄道任务、任务成功率与运动安全对照 |
 | **实验 H** | 真机接口对齐与硬件迁移验证 | 仿真 → 真机 | **待真机联调** | CAN 双编码器映射表、静态包络误差、低速形变与悬挂轮载标定记录 |
 
 ## 通用运行要求（建议粘贴在每条 Agent Prompt 开头）
@@ -827,184 +678,54 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 ---
 
-## 实验 0 · 模型冻结、基础移动框架与标准初态验收（前置必做）
+## 实验 0 · 模型与底盘基础验收（已完成）
 
-**目的**　在展开脊髓三图实验前，冻结当前 `tars_mjcf_grounded` 模型与底盘控制版本，验收“基础移动 + 边走边变形 + 闭链稳定”前提是否达标，并导出后续实验 A/B/C/D 共用的标准初态快照与刚体映射表。  
-**关键检查**　1) 静置平衡与闭合残差；2) 六向平面行驶（`x± / y± / yaw±`）与 4 mm 单侧凸起越障；3) 边走边变形（`still / moving / lateral / reverse / half`）及舵轮转向控制定版核查；4) 导出 `φ=1.5`（CAD 零位）、`φ=0`、`φ=3` 的闭链可达稳定初态与 8-block 映射表。  
-**通过门禁**　无 MuJoCo 数值警告；闭链 weld 间隙 `< 0.2 mm`、相对转角 `< 0.2°`；六向行驶无轮罩/机身刮地、四轮承载率 `≥ 90%`；所有移动变形工况中无持续失载或转向失控。
+实验 0 已在当前完整 CAD 闭链 MuJoCo 模型上完成模型冻结、零位静置、六向移动、越障、移动变形和八块刚体映射检查。详细数值、模型哈希与安全门槛见 [`experiments/exp0_baseline_20261125_015900/summary.md`](experiments/exp0_baseline_20261125_015900/summary.md)。
 
-### 可直接复制的 Agent Prompt（实验 0）
+后续 Exp A 每个试次只从实测关节零位 `q=0` 复位。历史标准姿态库只用于旧模型验收，不输入新探索器，也不用于给阶段命名。
 
-```text
-请先遵循【通用执行约束】，在 robot-sim 仓库中完成【实验 0：模型冻结、基础移动框架与标准初态验收】。
+## 实验 A · 从零位自主发现脊髓三图
 
-一、任务目标
-验证当前最新闭链模型 `data/my_robot/mujoco/tars_mjcf_grounded/scene.xml` 与 `TarsGroundedEnv` / `src/controllers/grounded_morph.py` 是否满足展开后续三图与闭环实验的“基础移动框架”前提，并生成冻结基线包供实验 A/B/C/D 复用。
+**目的**　验证机器人能否从固定零位出发，只凭 XML 中的硬件连接和公开的反馈，自主试探并逐步建立阶段内运动图与阶段转换图，再用冻结图规划和复测可执行的变形动作。
 
-二、必须执行的检查步骤
-1. 模型与接口核对：
-   - 读取 `data/my_robot/mujoco/tars_mjcf_grounded/scene.xml` 与 `robot.xml`，核对并导出：
-     * 总质量、积分器、timestep、control_steps；
-     * 8 个闭链形变关节（`dof_1..dof_8`）的 `qposadr`、`dofadr`、限位、正方向、默认执行器（`kp/kv/forcerange`）；
-     * 4 个被动 pivot（`dof_9, 12, 15, 18`）、4 个舵轮转向（`dof_10, 13, 16, 19`）、4 个轮毂驱动（`dof_11, 14, 17, 20`）及 8 个万向球滑动悬挂（`caster_w{1..4}{a,b}_slide`）的参数；
-     * 闭环 `weld` 约束的两个 site 及其在 XML 零位（`q=0`，即 CAD 装配态 `φ=1.5`）下的位置/姿态残差；
-     * 明确建立“8 个逻辑 block（刚体组）”到 MuJoCo body 名称/ID 及物理环状相邻边（含闭环 weld 边）的映射文件 `block_topology.json`。
-2. 舵轮控制器版本确认：
-   - 检查 `src/controllers/grounded_morph.py` 与 `experiments/grounded_steering_decouple_20261124/` 的状态，确认当前主代码中 `_steer_and_roll` 的精确行为；不要擅自静默替换主控制器，若要比较新旧转向策略请以对照项记录，明确指出实验 A/B/C/D 应锁定的控制器版本。
-3. 基础移动框架验收（全部独立复位运行）：
-   - 静置稳定性测试（2 s）：记录 8 轴漂移、质心漂移、四胎与八球法向载荷、悬挂行程、weld 间隙与角度残差。
-   - 六向平面移动（`TarsGroundedEnv.drive`：`x+, x-, y+, y-, yaw+, yaw-`）与 4 mm 单侧凸起越障：记录实际位移/转角误差、偏航漂移、四轮承载率、轮胎载荷占比、最大悬挂行程、轮罩/机身非法触地力。
-   - 边走边变形（`TarsGroundedEnv.drive_morph`：`still / moving / lateral / reverse / half`）：记录上体与整机质心位置误差（peak/rms/end, mm）、四轮承载率、最长单轮失载时长（ms）、悬挂触底比例、最大倾角（deg）、单轮累计转向角与峰值转向速率（deg, deg/s）、8 轴峰值力矩（N·m）与闭链残差（mm, deg）。
-4. 导出标准初态快照（供实验 A/B/C/D 严格复用）：
-   - 分别稳定停驻在 `φ=1.5`（CAD 零位）、`φ=0`（从 `φ=1.5` 平滑闭链引导并静置稳定）、`φ=3` 及候选低秩点附近（如 `φ≈1.434`），保存完整 `qpos/qvel/ctrl` 与稳态残差到 `canonical_states.npz` 和 `canonical_states.json`。
+**11 月 26 日实测**　两轮共 518 个复位试次。机器人从单电机正反试探学到了零位附近的联动。冻结后，在同一批 96 个未见联合动作上，八关节位移预测误差为 0.192°，完整矩阵也是 0.192°，只考虑各电机自身响应时为 1.159°。放慢变形后，12 个进场目标中能完成诊断的从 9 个增至 11 个。已测区域的响应均归入起始模式，仍需找到能跨复位重现的第二种响应，才能检验 FSM 重放变形。[两轮简报](experiments/expA_encoder_discovery/RESULTS.md)
 
-三、输出文件（写入 `experiments/exp0_baseline_YYYYMMDD_HHMMSS/`）
-- `config.json`（含模型哈希、git 状态与全部参数）
-- `block_topology.json`（8 block 刚体映射与相邻边）
-- `canonical_states.npz` 与 `canonical_states.json`
-- `metrics.json`（上述全部定量验收指标与门禁通过/未通过判定）
-- `summary.md`（清晰列出已通过项、未通过项或隐患，以及能否直接进入实验 A/B/C/D 的明确结论）
-```
+**当前结果边界**　`experiments/expA_gstate_deep_20261125_021500/` 已做 1,676 次仿真试次，包含预选工作点附近的局部响应预测、闭环执行和记忆读写。它是局部辨识试验，不是自主三图发现。该历史结果可作为局部响应预测的先导数据，不能用来声称 Exp A 的核心目标已经通过。
 
----
+**初态与学习器可见信息**　每个 episode 从八个驱动关节的实测零位开始。学习器只读冻结 XML 解析的物理连接、事先列出的传感器反馈和自己的命令/执行记录。不得读取人工阶段标签、预选姿态库、姿态进度变量、参考变形路径、闭链雅可比或 MuJoCo 隐藏约束量。隐藏闭合误差、接触、载荷和力矩可以用于安全停机与事后评分，必须与算法可见数据分开保存。
 
-## 实验 A · `G_state` 八轴局部响应辨识与留出预测
+**三图职责**
 
-**目的**　检验能否仅通过有界小幅试探与八轴实测反馈，学到当前姿态邻域内的局部耦合响应关系，并准确预测未参与拟合的新联合关节动作。  
-**前置条件**　完成实验 0；使用实验 0 导出的 `canonical_states.npz`，避免误把 XML 零位（`φ=1.5`）当成 `φ=0`。  
-**关键对照**　在**完全相同的数据预算、相同初态、相同留出联合动作**下比较：1) 对角独立关节模型；2) 稠密线性响应模型；3) 仅保留经重复试探确认稳定边的稀疏图结构响应模型（附“零位移”与“直接等幅执行”参考下界）。同时做控制模式对照：全轴 `kp=50` 位置保持 vs 其余非激励轴低阻抗/零刚度随动，避免把位置保持误判为机械不可动。  
-**核心指标**　逐轴及总体留出角度预测误差（RMSE / MAE / Max，单位 `deg` 与 `rad`）、预测动作执行后的闭合残差（`mm`, `deg`）、不同试探预算（如 8 / 16 / 24 / 32 / 48 次）下的误差收敛曲线、重复试次波动（std）与有效响应秩/奇异值谱。
+| 图 | 初始来源 | 探索中学到的内容 |
+|---|---|---|
+| `G_struct` | XML 唯一先验 | 模块、关节、执行器、传感器和闭环连接，不包含运动规律或阶段答案 |
+| `G_local(s)` | 空图开始 | 每种可重复运动模式下，单轴/多轴命令对各关节的响应关系、适用范围、置信度和试验依据 |
+| `G_transition` | 空图开始 | 可重复行为模式节点；有向动作边、可观察的进入/完成条件、成功/失败证据与回退方式 |
 
-### 可直接复制的 Agent Prompt（实验 A）
+**多轮设计**　A0 审计零位复位、传感器底噪和数据白名单；A1 采集单轴正负响应和零输入对照；A2 用多轴联合动作学局部耦合并留出未见组合；A3 根据可重复的响应改变提出、合并或拆分行为模式；A4 学习转换条件和动作，复位后重复执行并独立检验反向回退；A5 每隔相同动作预算保存三图快照，继续探索不确定前沿；A6 冻结图，在全新 reset episode 中测试预测和动作重放。失败会降级或撤销候选边并作为下一轮训练数据。
 
-```text
-请先遵循【通用执行约束】，在 robot-sim 仓库中设计与运行【实验 A：G_state 八轴局部响应辨识与留出预测】。
+**公平对照**　相同模型版本、零位、传感器、控制器、限幅、复位、动作预算和留出 episode 下比较随机安全试探、平坦试验记录、全局响应模型和三图方法。训练/测试按完整 episode 和随机种子隔离。神经网络或图神经网络仅作为可选额外对照，不是图结构定义的一部分。
 
-一、实验对象与初态要求
-- 目标模型：`data/my_robot/mujoco/tars_mjcf_grounded/scene.xml`（`TarsGroundedEnv`）。
-- 注意：不要直接复用旧 `src/exploration/closed_loop_probe.py`（它绑定了旧 `robot_closed_loop.xml`）；请基于 `TarsGroundedEnv` 编写干净独立的新试探模块（保留原文件不破坏旧测试）。
-- 分别在两个标准闭链可达初态邻域运行本实验（若已有实验 0 导出的 `canonical_states.npz` 则直接加载，否则先按闭链路径平滑到达并稳定至少 1 s）：
-  1) `phi_0`（`φ=0` 展开态）；
-  2) `phi_1p5`（`φ=1.5` CAD 零位态，便于与后续奇异/分叉实验衔接）。
-- 在每个初态先记录 1 s 静置漂移（8 轴角度变化、速度、weld 位置/角度残差、四轮载荷）。
+**核心指标**　未见多轴动作响应误差；可重复发现的行为模式与转换数；每个可靠关系所需试探数；冻结边在新试次中的成功率及置信区间；错误阶段判断/错误触发率；回退成功率；闭链残差、力矩限幅、异常停止和到达目标模式所需时间。
 
-二、执行器与控制模式对照（关键防误判）
-- 核对 `dof_1..dof_8` 的 `kp=50, kv=0, ±11 N·m` 位置伺服定义。
-- 明确设置并记录两种受控试探模式：
-  * 模式 M1（默认全轴位置保持）：8 个电机均处于统一限幅 PD/位置伺服，只叠加有界增量指令 `u`；
-  * 模式 M2（对照随动模式，用于诊断）：除当前试探激励轴外，其余轴改为极低刚度/零指令增量随动（仅记录为机理对照，不篡改原 XML，在内存模型副本中执行）。
-- 说明两种模式下测得响应矩阵和奇异值谱的差异，防止将“其余轴位置保持顶住”误判为“机械不可动”。
+**结论门槛**　至少发现两个可复现行为模式/转换（若模型不支持则如实报告）；冻结图能在新试次重放经验证动作；安全指标通过；并且三图方法相对至少一个同预算基线在预先指定指标上稳定改善。图比矩阵更强不是预设结论。
 
-三、试探协议与防数据泄漏要求
-- 设计限幅、平滑（斜坡上升 + 保持段）的小幅正负试探：覆盖单轴正负试探与多轴联合试探，指令范数严格受限（如 `||u||_2 <= 0.04 rad`，并核查力矩不触限、weld 残差受控、无数值警告）。
-- 每次试探均从同一稳定初态出发并复位（记录零输入对照漂移并扣除同起点可重复漂移 `y = Δq(u) - Δq(0)`）；每个试探独立记录完整时序：`qpos`、`qvel`、命令 `u`、实测 `actuator_force`、weld 位置与姿态残差、轮胎与万向球接触载荷及告警标志。
-- 严格按**完整 trial** 划分训练集与留出测试集（例如固定 3 个随机种子，留出 ≥16 条未见多轴联合输入 trial，并含重复试次以量化重复性波动），严禁将同一 trial 的相邻帧分入训练和测试集。
-- 辨识器只能读取指令 `u`、八轴 `qpos/qvel` 与物理连接拓扑，严禁读取闭环雅可比或 weld 约束力作为输入特征（雅可比仅用于事后离线对照诊断）。
+详细字段、轮次、更新规则及数据文件要求见 [Exp A 三图自主发现计划](experiments/EXP_A_THREE_GRAPH_DISCOVERY_PLAN.md)。独立示意图提示见 [三图示意图插图清单](THREE_LAYER_THREE_GRAPH_PPT_PROMPT.md)。
 
-四、模型对照（同初态、同预算、同留出集）
-1. `independent_diag`：对角独立关节响应模型；
-2. `dense_linear`：带正则化的稠密响应矩阵（如 Ridge）；
-3. `sparse_graph_validated`：仅保留经重复试探一致性检验（方向/比例稳定且超过静置底噪）的耦合边构成的图结构局部响应模型；
-4. 附参考下界：`zero_pred`（预测零运动）。
-- 评估不同训练试探预算（如 `N = 8, 12, 16, 24, 32, 48`）在相同留出集上的误差。
+## 实验 B 与 C · 并入新的 Exp A
 
-五、输出文件（写入 `experiments/expA_local_response_YYYYMMDD_HHMMSS/`）
-- `config.json`、`raw_trials.npz`、`metrics.json`（含逐轴与总体 RMSE/MAE/Max（deg & rad）、奇异值谱、重复性 std、weld 残差、触限次数、各预算下对比表）
-- 无背景网格线（关闭主/次横纵网格）的对比图：1) 预算-留出误差曲线；2) 三模型逐轴误差柱状/散点对比；3) 学得响应矩阵热力图与稀疏图结构。
-- `summary.md`：明确声明所有结论仅适用于所测初态局部邻域，不外推为全局机械约束。
-```
+旧版把局部响应、功能组识别和转换条件验证拆成三个实验，并以预先指定的模式/工作点安排测试。这个拆分与“探索器从零位自己发现三图”的新目标不一致，因此不再按旧 B/C 提示词单独运行。
 
----
-
-## 实验 B · `G_mode` 候选功能组（有效刚体拓扑）辨识与留出检验
-
-**目的**　在给定 8 个 block 的物理连接基础上，仅从多方向局部扰动下的刚体位姿反馈中识别哪些 block 保持相对静止（形成候选功能组），并在未参与构图的留出动作上检验分组是否破裂。  
-**前置条件**　完成实验 0（取得 `block_topology.json`）并可复用实验 A 的受控扰动 trial 及新增多方向留出动作。  
-**关键对照**　1) 仅基于单方向共动推断的候选分组 vs 2) 基于多方向重复扰动联合推断的候选分组；在相同留出动作集上统计组内相对运动与破裂率。  
-**核心指标**　相邻 block 相对平移（`mm`）与相对转角（`deg`）分布、由静置重放确定的噪声阈值、留出动作上的**分组破裂率（%）与破裂次数**、被标记为 `undecided`（证据不足）的连接比例、分组有效姿态范围。
-
-### 可直接复制的 Agent Prompt（实验 B）
-
-```text
-请先遵循【通用执行约束】，在 robot-sim 仓库中设计与运行【实验 B：G_mode 候选功能组辨识与留出检验】。
-
-一、物理拓扑与刚体位姿读取
-- 目标模型：`data/my_robot/mujoco/tars_mjcf_grounded/scene.xml`（`TarsGroundedEnv`）。
-- 注意：新模型中 8 个逻辑 block 的 MuJoCo 刚体名不是 `block1..block8`，而是 CAD 导出的 `link_insert_cd6ae4a9bfcf_part_*` 刚体树。请读取实验 0 生成的 `block_topology.json`（若无则先从 `robot.xml` 准确解析 8 个逻辑 block 的代表刚体与 8 条环状物理相邻边，含闭环 `weld` 边，并保存映射表）。
-- 对每条相邻连接边 `(b_i, b_j)`，从 MuJoCo 刚体世界位姿 `(xpos, xmat)` 计算相对位姿变化：
-  * 相对平移变化 `Δp_rel`（mm，在 `b_i` 局部系下相对于初态的偏移范数）；
-  * 相对转角变化 `Δθ_rel`（deg，由相对旋转矩阵 `R_rel(0)^T R_rel(t)` 的旋转角得到）。
-
-二、阈值标定（禁止拍脑袋定阈值）
-- 先在每个测试初态运行静置重放（至少 2 s，多个随机扰动/复位重复），统计每条相邻边在静置状态下的 `Δp_rel` 与 `Δθ_rel` 数值噪声上界（如 99% 分位或 max），结合安全系数确定统计阈值 `τ_p`（mm）与 `τ_θ`（deg），并明确写入报告。
-- 不得以“两个 block 在世界坐标系下同时移动”作为合并依据，必须严格按刚体间相对位姿是否保持不变来判定。
-
-三、构图与留出验证对照
-- 在选定初态（至少覆盖 `φ=0` 与 `φ=1.5`，以及条件允许时的移动中局部扰动）执行多方向有界扰动试探，并按完整 trial 划分为“构图集”与“留出检验集”（留出集应包含未参与构图的组合动作及跨方向动作）：
-  1) 基线方法 `single_dir_inference`：仅使用单一方向（或单一已知路径切向）的扰动样本推断功能组；
-  2) 对照方法 `multi_dir_repeated`：要求在多个独立扰动方向及重复试次下相对运动均持续低于阈值，且至少在有激励覆盖的前提下，才合并为候选刚性功能组；激励不足或结果不一致的边严格保留为 `undecided`，不强行合并或拆分。
-- 在完全相同的留出动作集上，统计两种方法得到的候选功能组内部所有连接边的相对位移/转角分布、超阈值次数与**留出破裂率**。
-
-四、输出文件（写入 `experiments/expB_gmode_groups_YYYYMMDD_HHMMSS/`）
-- `config.json`、`block_topology.json`、`raw_relative_motion.npz`
-- `g_mode_candidates.json`（每个候选分组的成员 block、样本数、相对平移/转角分位数、静置阈值依据、留出破裂次数/破裂率、标记为 `undecided` 的边、适用姿态范围）
-- 无背景网格线的对比图：1) 各相邻边在静置 vs 单向 vs 多向留出下的相对转角/位移分布；2) 两种方法的留出破裂率对比；3) 8-block 环状拓扑与候选功能组示意图。
-- `summary.md`：明确区分“模型给定物理连接”与“反馈支持的候选功能组”，说明证据不足边界。
-```
-
----
-
-## 实验 C · `G_phase` 阶段转换条件与回退复测
-
-**目的**　检验是否存在独立的推进方向/状态条件，使得进入特定状态邻域后，某个原先受限的运动方向响应显著改变；并通过真实回退再进入复测，区分偶然数值现象与可复现的阶段转换边。  
-**前置条件**　完成实验 0、实验 A、实验 B；不预设“某组关节共同到 0°”等人工标签或解锁公式。  
-**关键对照**　先基于反馈检验是否存在两个可分别推进且可回退的运动方向（或基于实测有效子空间/候选降秩点如 `φ≈1.434` 邻域定义状态条件）。若存在 A/B 两组独立进度，则严格在“**都远 / 仅 A 近 / 仅 B 近 / 两组都近**”四种闭链可达状态下，对同一受限方向施加完全相同的安全探测；若实测组数或条件结构不同，按实测关系重新设计最小可区分条件对照并记录原因。  
-**核心指标**　目标转换复现率（多次进入-探测-回退-再进入）、单条件误解锁率（仅 A 近或仅 B 近时的假阳性率）、目标方向实测响应幅度与信噪比、闭合残差（`mm`, `deg`）、执行器峰值力矩（`N·m`）、四轮支撑状态、回退成功率与转换生成机制标签（如 `geometric_branch` / `limit_switch` / `active_contact_switch`）。
-
-### 可直接复制的 Agent Prompt（实验 C）
-
-```text
-请先遵循【通用执行约束】，在 robot-sim 仓库中设计与运行【实验 C：G_phase 阶段转换条件与回退复测】。
-
-一、核心原则（严格防先验泄漏）
-- 目标模型：`data/my_robot/mujoco/tars_mjcf_grounded/scene.xml`（`TarsGroundedEnv`）。
-- 严禁预设“固定关节配对”或“预设解锁角度”作为探索策略输入；严禁在控制/探索器中调用闭环雅可比强制修正动作（雅可比奇异值仅可在实验结束后的离线诊断章节里作为物理对照，且必须明确标注为“离线参考而非在线观测”）。
-- 严禁通过添加人工角度锁定公式或修改 XML 来强行制造阶段切换。
-
-二、实验流程
-1. 独立推进与可回退方向检验：
-   - 结合实验 A/B 测得的局部有效响应方向，先用留出执行测试验证在当前模型中：
-     a) 从 `φ=0` 或 `φ=1.5` 邻域出发，是否存在两个能够分别推进且可稳定回退的独立运动方向；
-     b) 同时检查已知候选奇异/分叉邻域（此前离线扫描提示 `φ≈1.434` 附近存在秩降与横向分支，如 `dof_1/-dof_5`、`dof_3/-dof_7` 等），检验纯反馈探测能否在进入该邻域前后检测到受限方向响应的显著变化。
-   - 按实测结果定义可区分的状态条件：
-     * 若实测存在两个独立进度组 A/B：定义各自的进度坐标及近/远区间，构造四格对照条件——`both_far`（都远）、`only_A_near`（仅 A 近）、`only_B_near`（仅 B 近）、`both_near`（两组都近）；
-     * 若当前 CAD 模型的实际自由度/组数与双组假设不同：如实记录差异，并按实测方向构造最小可区分的“远离条件 vs 邻域条件 vs 单侧偏离条件”对照矩阵，不硬凑双组标签。
-2. 同输入受限方向探测：
-   - 在每种对照条件下，从闭链可达且静置稳定的状态出发，对同一个受限/目标方向施加**完全相同幅度、相同斜坡与保持时长**的安全探测输入（执行器力矩、速度、weld 残差均设安全止停阈）。
-   - 记录 8 轴 `qpos/qvel` 响应、目标方向投影位移、其余方向泄漏位移、weld 位置与姿态残差、执行器峰值力矩、四轮法向载荷及悬挂行程。
-3. 回退与重复进入复测（区分验证边与偶然现象）：
-   - 对每个出现显著响应变化的候选转换，执行至少 5 次“进入条件 → 探测 → 回退至源状态 → 再次进入 → 复测”循环。
-   - **优先测试真实物理回退**（通过控制指令实际退回源状态）；若同时使用仿真快照重置作辅助对照，必须把两种协议的结果和耗时/失败率分开报告，不得混为一谈。
-4. `G_phase` 边准入规则与机制标注：
-   - 仅当目标方向响应在重复进入后可稳定复现、误解锁率受控且闭合残差与支撑安全时，才将其写入 `g_phase.json` 并标记 `status: "verified"`，附带：`guard`（进入条件与适用范围）、`action`（已验证动作与速度/幅值上限）、`exit_test`（退出判定）、`failure_evidence`（失败或边界记录）及转换机制标签（`geometric_branch` / `limit_switch` / `active_contact_switch` / `unknown`）。
-   - 若当前模型在所测轨迹中不存在可复现阶段转换，如实报告全部证据，输出空 `verified` 边表，严禁构造虚假阶段边。
-
-三、输出文件（写入 `experiments/expC_gphase_transitions_YYYYMMDD_HHMMSS/`）
-- `config.json`、`raw_probe_cycles.npz`、`g_phase.json`、`metrics.json`
-- 无背景网格线的对比图：1) 四格/多条件下的同一探测响应对比（含多次复测散点与误差带）；2) 闭合残差与峰值力矩安全检查图；3) 复现率与误解锁率汇总图。
-- `summary.md`：清晰区分“在线反馈发现的证据”与“事后离线雅可比参考”，如实交代当前 CAD 模型支持与不支持的假设。
-```
-
----
+原 B 的多方向耦合与功能组检验，现纳入新 Exp A 的 A1–A3；原 C 的转换条件、正反复测和失败记录，现纳入 A4–A6。具体轮次与字段以 [Exp A 三图自主发现计划](experiments/EXP_A_THREE_GRAPH_DISCOVERY_PLAN.md) 为准。
 
 ## 实验 D · 图查询接入大脑 FSM 与小脑舵轮协调的端到端闭环对照
 
-**目的**　检验脊髓三图（`G_mode / G_state / G_phase`）提供的可达性、验证动作边、沿途包络与支撑条件，是否能真正改善大脑（FSM）的阶段选择和小脑（舵轮 + 变形）的移动协调，而不仅仅提高单步角度预测精度。  
-**前置条件与当前缺口说明**　1) 需先完成实验 0（锁定稳定底盘移动与边走边变形控制器）及实验 A/B/C（获得经过复测标记的图数据）；2) **当前工程缺口**：仓库现有 `MujocoBenchmarkEnv`（A/B/C 场景）、`ScriptedBrain` 与 `MPCController` 仍绑定在旧 7 关节模型上，`tars_mjcf_grounded` 目前仅有空旷平地与 `experiments/grounded_support_navigation` 的离线虚拟墙投影。因此本实验分为两步：先搭建最小可复现的物理窄道任务场景与三层闭环接口，再执行三方法严格对照。  
+**目的**　检验脊髓三图（`G_struct / G_local(s) / G_transition`）提供的可达性、验证动作边、沿途包络与支撑条件，是否能真正改善大脑（FSM）的阶段选择和小脑（舵轮 + 变形）的移动协调，而不仅仅提高单步角度预测精度。
+**前置条件与当前缺口说明**　1) 需先完成实验 0（锁定稳定底盘移动与边走边变形控制器）及新 Exp A（获得经过复测标记的图数据）；2) **当前工程缺口**：仓库现有 `MujocoBenchmarkEnv`（A/B/C 场景）、`ScriptedBrain` 与 `MPCController` 仍绑定在旧 7 关节模型上，`tars_mjcf_grounded` 目前仅有空旷平地与 `experiments/grounded_support_navigation` 的离线虚拟墙投影。因此本实验分为两步：先搭建最小可复现的物理窄道任务场景与三层闭环接口，再执行三方法严格对照。
 **关键对照**　保持**同一任务场景、相同起终点、相同模型版本、相同底盘舵轮参数、相同安全限幅与相同探索数据预算**，比较三种控制器：  
-1. **基线 1（Reference Replay）**：既有参考 `φ` 路径回放控制，仅按起终点形态规则切换，不读取三图（不查沿途包络与验证阶段边）；  
+1. **基线 1（Scripted Morph Replay）**：预先记录的参考变形轨迹回放控制，仅按起终点形态规则切换，不读取三图（不查沿途包络与验证阶段边）；
 2. **基线 2（Global Response）**：使用与图方法相同探索数据预算拟合的固定全局响应模型驱动变形与协调；  
-3. **本方法（Three-Graph Closed-Loop）**：大脑 FSM 查询 `G_mode / G_state / G_phase`（**仅允许调用实验 C 中 `verified` 边**），结合 `src/controllers/shape_navigation.py` 计算沿途包络净空并接收小脑支撑/跟踪/碰撞反馈，支持进场横移、减速、暂停或重规划。  
+3. **本方法（Three-Graph Closed-Loop）**：大脑 FSM 查询 `G_struct / G_local(s) / G_transition`（**仅允许调用新 Exp A 中 `verified` 边**），结合 `src/controllers/shape_navigation.py` 计算沿途包络净空并接收小脑支撑/跟踪/碰撞反馈，支持进场横移、减速、暂停或重规划。
 **核心指标**　任务成功率（到达目标且无碰撞/无倾覆/无数值告警）、阶段转换成功率与误判率、沿途最小墙体净空与碰撞力（`mm`, `N`）、路径跟踪误差（`mm`）与形态跟踪误差（`deg`）、闭合残差（`mm`, `deg`）、四轮承载率与最长失载时长（`%`, `ms`）、任务耗时（`s`）与中止原因分类。
 
 ### 可直接复制的 Agent Prompt（实验 D）
@@ -1014,8 +735,8 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 一、前置检查与最小基准任务搭建（先搭桥，再做对照）
 - 目标模型：`data/my_robot/mujoco/tars_mjcf_grounded/scene.xml`（`TarsGroundedEnv`、`src/controllers/grounded_morph.py`、`src/controllers/shape_navigation.py`）。
-- 先核查是否存在已通过实验 0 的冻结底盘控制器，以及实验 A/B/C 产出的图文件（`block_topology.json`、`g_mode_candidates.json`、`g_phase.json`）。
-  * 若某一层接口或经复测通过的 `G_phase` 边尚未完备，不得伪造验证边，请明确在 `summary.md` 中声明已运行的层级边界（例如先运行“已知验证阶段边 + 沿途包络净空与支撑闭环”层级）。
+- 先核查是否存在已通过实验 0 的冻结底盘控制器，以及新 Exp A 产出的图文件（`g_struct.json`、`g_local/`、`g_transition.json`）。
+  * 若某一层接口或经复测通过的 `G_transition` 边尚未完备，不得伪造验证边，请明确在 `summary.md` 中声明已运行的层级边界（例如先运行“已知验证阶段边 + 沿途包络净空与支撑闭环”层级）。
 - 在不修改 `data/my_robot/mujoco/tars_mjcf_grounded/robot.xml` 的前提下，通过独立的场景 XML 或 `mujoco.MjSpec` 在平地上构建**带真实物理碰撞墙体的直窄道穿行基准任务**（例如多组通道宽度：`0.80 m / 0.88 m / 1.00 m` 及不同初始横向偏置/随机种子），同时复用 `ShapeGeometry` 从关节编码器实时计算沿途包络净空。
 - 将三层接口打通到 `TarsGroundedEnv`：
   * 大脑（FSM）：发出目标位置、目标阶段与进场策略请求，接收“到达 / 暂停 / 净空不足 / 支撑异常 / 失败重规划”事件；
@@ -1024,9 +745,9 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 二、三方法公平对照协议（同任务、同初态、同底盘、同限幅、同探索预算）
 在至少 3 个通道宽度 × 多个初始横向偏置（或随机种子）下，对比以下三种控制方式：
-1. `baseline_ref_phi`：仅按起终点规则触发既有参考 `φ` 轨迹回放，不读取三图，不做沿途包络净空预检查与重规划；
+1. `baseline_scripted_morph`：仅按起终点规则触发预先记录的参考变形轨迹回放，不读取三图，不做沿途包络净空预检查与重规划；
 2. `baseline_global_model`：使用与三图方法相同数量探索数据拟合的固定全局局部响应模型，无阶段图查询与条件门控；
-3. `three_graph_closed_loop`：查询 `G_mode / G_state / G_phase`，**严格只允许调用已标记 `verified` 的动作边**（未验证或 `undecided` 关系禁止作为可执行策略），执行前由小脑结合沿途包络做净空预检（必要时先横移对齐再变形），执行中基于关节响应、闭合残差、墙体净空和四轮载荷触发减速、暂停或 FSM 重规划。
+3. `three_graph_closed_loop`：查询 `G_struct / G_local(s) / G_transition`，**严格只允许调用已标记 `verified` 的动作边**（未验证或 `undecided` 关系禁止作为可执行策略），执行前由小脑结合沿途包络做净空预检（必要时先横移对齐再变形），执行中基于关节响应、闭合残差、墙体净空和四轮载荷触发减速、暂停或 FSM 重规划。
 
 三、统一成功判定与记录字段
 - 明确定义 `success = goal_reached AND no_wall_collision AND no_tip_over AND closure_ok AND no_sim_warning`（阈值写入 `config.json`，三方法完全一致）。
@@ -1051,7 +772,7 @@ G_mode 表示当前模式中哪些 block 可视为一组及其有效范围。G_s
 
 一、必须核对的五项接口对齐
 1. 关节与编码器映射：
-   - 将仿真 `dof_1..dof_8`（`qpos/qvel`）与真机 CAN 双编码器输出轴绝对位置逐一对应，核对关节编号、零位定义（明确对应 `φ=1.5` 还是 `φ=0`）、正方向、限位与单位（`rad`）。
+   - 将仿真 `dof_1..dof_8`（`qpos/qvel`）与真机 CAN 双编码器输出轴绝对位置逐一对应，核对关节编号、零位定义（以实测关节零位和编码器映射为准）、正方向、限位与单位（`rad`）。
    - 电流与反馈力矩作为可用时的负载辅助信号，角度和速度作为主要闭环反馈。
 2. 静态姿态与包络重建验收：
    - 使用实测静态编码器读数输入 `src/controllers/shape_navigation.py`（`ShapeGeometry`），与实物实测外轮廓尺寸对比，记录最大包络误差（mm）。
